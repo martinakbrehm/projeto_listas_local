@@ -44,6 +44,17 @@ O **Gerador de Listas PF** é uma aplicação web desenvolvida para automatizar 
 
 **Depois:** Interface web intuitiva onde o operador seleciona filtros visuais, o sistema processa tudo automaticamente e entrega um Excel pronto para uso.
 
+### 🎨 Interface Moderna e Intuitiva
+
+A versão atual apresenta uma **interface completamente redesenhada** com foco na usabilidade:
+
+- **🏃 Controles Rápidos:** Presets pré-configurados para cenários comuns (alta qualidade, maior volume, processamento rápido)
+- **📊 Estimativas Visuais:** Preview em tempo real de quantidade de registros, tempo de processamento e qualidade esperada
+- **🎯 Filtros Organizados:** Agrupamento lógico por prioridade e tipo de processamento (banco vs Python)
+- **⚡ Feedback Imediato:** Notificações toast, validação visual e status de filtros ativos
+- **📱 Design Responsivo:** Funciona perfeitamente em desktop, tablet e mobile
+- **🎪 UX Moderna:** Botões interativos, animações suaves e design system consistente
+
 ---
 
 ## ✨ Funcionalidades Principais
@@ -249,7 +260,20 @@ pip install -r requirements.txt
 
 #### 4.1 Arquivo de Credenciais Seguras
 
-Edite o arquivo `config_db.py` (não versionado no Git):
+**⚠️ IMPORTANTE: Segurança das Credenciais**
+
+- O arquivo `config_db.py` contém credenciais reais e **NÃO é versionado** no Git
+- Use o arquivo `config_db.example.py` como template para criar suas credenciais
+- **Nunca commite** `config_db.py` em repositórios públicos
+
+```bash
+# Copie o arquivo de exemplo
+cp config_db.example.py config_db.py
+
+# Edite config_db.py com suas credenciais reais
+```
+
+Conteúdo do `config_db.py` (exemplo - substitua pelas suas credenciais):
 
 ```python
 # config_db.py
@@ -309,7 +333,78 @@ python app.py
 
 ---
 
-## 🎮 Como Usar
+## � Interface e Usabilidade
+
+### 🏃 Controles Rápidos (Início Rápido)
+
+Para usuários iniciantes ou cenários comuns, utilize os **controles rápidos** na parte superior:
+
+1. **Região Geográfica:** Selecione presets como "São Paulo (Capital)", "Sudeste Completo", etc.
+2. **Perfil de Contato:** Escolha entre "Digital" (email + celular), "Telefônico", "Equilibrado" ou "Básico"
+3. **Tamanho da Lista:** Defina "Pequena" (1.000), "Média" (5.000), "Grande" (10.000) ou "Ilimitada"
+
+### 📊 Estimativas em Tempo Real
+
+A interface mostra **estimativas visuais** atualizadas automaticamente:
+- **📈 Registros estimados:** Baseado nos filtros aplicados
+- **⚡ Tempo de processamento:** "Instantâneo", "~2-5 min" ou "~5-15 min"
+- **🎯 Qualidade estimada:** "Baixa", "Média" ou "Alta"
+
+### 🎯 Filtros Organizados por Prioridade
+
+Os filtros estão organizados em **5 blocos lógicos**:
+
+#### 1. **LOCALIZAÇÃO** (Obrigatório - Processamento Banco)
+- **Estado (UF):** Campo obrigatório que define a base da busca
+- **Cidades:** Uma por linha ou separadas por vírgula (sem acentos)
+- **Bairros:** Busca inteligente via OpenStreetMap/IBGE
+
+#### 2. **PERFIL DEMOGRÁFICO** (Banco de Dados)
+- **Gênero:** Ambos, Feminino ou Masculino (botões visuais)
+- **Faixa Etária:** Padrão 18-70 anos (protege menores)
+- **Qualidade de Contato:** Qualquer, Email obrigatório, Email preferencial
+
+#### 3. **CONTATO & COMUNICAÇÃO** (Python - Validação Avançada)
+- **Tipo de Telefone:** Móvel, Fixo ou Ambos
+- **Região do DDD:** Restringe para regiões específicas
+- **Validação de Contato:** Remove telefones/emails inválidos
+- **Priorizar Email:** Ordena registros com email primeiro
+
+#### 4. **PROFISSÃO & SEGMENTO** (Python - Opcional)
+- **Categoria Profissional:** Gerencial, Comercial, Técnico, etc.
+- **Códigos CBO Específicos:** Lista manual de códigos
+- **Segmento Socioeconômico:** Alto, Médio, Básico (estimado)
+- **Faixa de Renda:** Estimativa baseada em CBO e região
+
+#### 5. **FINALIZAÇÃO**
+- **Tamanho da Lista:** Máximo 50.000 registros
+- **Formato de Saída:** Excel (recomendado) ou CSV
+- **Levantamento:** Contagem rápida antes da geração
+
+### ⚡ Atalhos e Funcionalidades Avançadas
+
+#### Sidebar Inteligente
+- **Filtros Ativos:** Visualização em tempo real dos filtros aplicados
+- **Atalhos Rápidos:** Presets para cenários comuns
+- **Limpar Tudo:** Remove todos os filtros de uma vez
+
+#### Funcionalidades Especiais
+- **Notificações Toast:** Feedback imediato para todas as ações
+- **Validação Visual:** Campos obrigatórios destacados
+- **Busca de Bairros:** Interface inteligente com rankings
+- **Responsividade:** Funciona em desktop, tablet e mobile
+
+### 🎪 Design System
+
+- **Cores por Tipo:** Azul (banco), Verde (Python)
+- **Botões Interativos:** Estados hover e focus
+- **Animações Suaves:** Transições de 0.2-0.3s
+- **Ícones Contextuais:** Bootstrap Icons em todos os elementos
+- **Tipografia Clara:** Hierarquia visual bem definida
+
+---
+
+## �🎮 Como Usar
 
 ### 1. Interface Web
 
