@@ -1,0 +1,52 @@
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Ambientes virtuais ────────────────────────────────────────
+venv/
+.venv/
+env/
+.env
+*.env
+
+# ── Dados gerados (NÃO versionar listas de clientes) ─────────
+output/
+!output/.gitkeep
+
+# ── Logs (manter estrutura, não o conteúdo) ──────────────────
+logs/app/
+logs/geracoes/geracoes.csv
+!logs/app/.gitkeep
+!logs/geracoes/.gitkeep
+
+# ── Configuração sensível ─────────────────────────────────────
+# config.py contém credenciais — NÃO commitar em repo público
+# config.py
+# config_db.py contém credenciais do banco — NÃO commitar
+config_db.py
+
+# ── Banco de dados / cache ────────────────────────────────────
+*.db
+*.sqlite3
+
+# ── Temporários e IDEs ───────────────────────────────────────
+*.bak
+*.tmp
+*.swp
+*.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
+
+# ── Pytest / coverage ─────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Listas PF — Contatus</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+
+    .sidebar {
+      background: #1a2238;
+      min-height: 100vh;
+      color: #cfd8e3;
+      padding: 1.5rem 1rem;
+      position: sticky;
+      top: 0;
+    }
+    .sidebar h1 { font-size: 1.1rem; color: #fff; font-weight: 700; letter-spacing: .5px; }
+    .sidebar .logo { font-size: 1.6rem; color: #4fc3f7; margin-bottom: .2rem; }
+
+    .section-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.07);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .section-title {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6c757d;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #e9ecef;
+      padding-bottom: .5rem;
+    }
+
+    /* Bairros nobres */
+    .bairro-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #e3f2fd;
+      color: #0d47a1;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: .8rem;
+      margin: 2px;
+      cursor: default;
+    }
+    .bairro-tag .rm { cursor: pointer; color: #888; }
+    .bairro-tag .rm:hover { color: #c62828; }
+
+    #bairros-sugestoes { max-height: 260px; overflow-y: auto; }
+    .bairro-item {
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: .85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .bairro-item:hover { background: #e3f2fd; }
+    .bairro-rank { font-size: .7rem; color: #aaa; }
+
+    /* Levantamento badge */
+    #levantamento-result {
+      display: none;
+      animation: fadeIn .3s;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; } }
+
+    /* Preview table */
+    .preview-table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; }
+    .preview-table-wrap table { font-size: .78rem; }
+    .preview-table-wrap th { position: sticky; top: 0; background: #1a2238; color: #fff; z-index: 1; white-space: nowrap; }
+
+    /* Botões */
+    .btn-gerar  { background: #1565c0; border-color: #1565c0; font-weight: 600; }
+    .btn-gerar:hover  { background: #0d47a1; border-color: #0d47a1; }
+    .btn-lev    { background: #00897b; border-color: #00897b; font-weight: 600; }
+    .btn-lev:hover    { background: #00695c; border-color:#00695c; }
+
+    .filtro-banco { border-left: 3px solid #1565c0; padding-left: .75rem; }
+    .filtro-python { border-left: 3px solid #00897b; padding-left: .75rem; }
+
+    .badge-banco  { background: #e3f0ff; color: #1565c0; font-size:.65rem; }
+    .badge-python { background: #e6f7f5; color: #00695c; font-size:.65rem; }
+  </style>
+</head>
+<body>
+<div class="d-flex">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" style="width:210px; min-width:210px;">
+    <div class="logo"><i class="bi bi-list-check"></i></div>
+    <h1>Gerador de Listas PF</h1>
+    <hr style="border-color:#2c3e60">
+    <p class="small" style="color:#8fa8c8;">Filtros com borda azul vão ao banco. Filtros com borda verde são aplicados em Python.</p>
+    <hr style="border-color:#2c3e60">
+    <ul class="small" style="color:#8fa8c8; padding-left:1rem;">
+      <li>UF / Cidade / Bairro ← banco</li>
+      <li>Gênero ← banco</li>
+      <li>Idade ← banco</li>
+      <li>Email ← banco</li>
+      <li>Telefone ← python</li>
+      <li>Score ← python</li>
+      <li>CBO ← python</li>
+    </ul>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="flex-grow-1 p-4" style="max-width:1100px;">
+
+    <!-- ALERTAS -->
+    {% if erro %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ erro }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- RESULTADO GERADO -->
+    {% if total_final is defined and total_final %}
+    <div class="alert alert-success d-flex align-items-center gap-3">
+      <i class="bi bi-check-circle-fill fs-4"></i>
+      <div>
+        <strong>Lista gerada!</strong>
+        {{ total_final }} registros
+        (de {{ total_banco }} retornados do banco).
+        <a href="/download" class="btn btn-sm btn-success ms-3">
+          <i class="bi bi-download me-1"></i>Baixar {{ nome_arquivo }}
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- RELATÓRIO DE LIMPEZA -->
+    {% if rel_limpeza %}
+    <div class="alert alert-warning py-2 small">
+      <i class="bi bi-funnel-fill me-1"></i>
+      {{ rel_limpeza | safe }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/gerar" id="form-lista">
+
+      <!-- ── BLOCO 1: LOCALIZAÇÃO ──────────────────────────── -->
+      <div class="section-card">
+        <div class="section-title"><i class="bi bi-geo-alt me-1"></i>Localização <span class="badge badge-banco ms-2">banco</span></div>
+        <div class="row g-3">
+
+          <!-- UF -->
+          <div class="col-md-3 filtro-banco">
+            <label class="form-label fw-semibold">Estado (UF) <span class="text-danger">*</span></label>
+            <select name="ufs" id="select-uf" class="form-select" required onchange="carregarBairros()">
+              <option value="">Selecione...</option>
+              {% for uf in ufs %}
+              <option value="{{ uf }}" {% if filtros and filtros.ufs and uf in filtros.ufs %}selected{% endif %}>{{ uf }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- CIDADES -->
+          <div class="col-md-5 filtro-banco">
+            <label class="form-label fw-semibold">Cidade(s)</label>
+            <textarea name="cidades" id="input-cidades" class="form-control" rows="3"
+              placeholder="Ex: SAO PAULO, CAMPINAS (uma por linha ou vírgula)"
+              onchange="carregarBairros()"
+              onblur="carregarBairros()">{% if filtros and filtros.cidades %}{{ filtros.cidades | join('\n') }}{% endif %}</textarea>
+            <div class="form-text">Uma cidade por linha. Sem acento, em maiúsculo.</div>
+          </div>
+
+          <!-- BAIRROS -->
+          <div class="col-md-4 filtro-banco">
+            <label class="form-label fw-semibold">Bairros <span class="badge badge-banco">banco</span></label>
+
+            <!-- Tags de bairros selecionados -->
+            <div id="bairros-tags" class="mb-1"></div>
+            <!-- Input oculto que envia os bairros selecionados -->
+            <textarea name="bairros" id="bairros-hidden" class="d-none">{% if filtros and filtros.bairros %}{{ filtros.bairros | join('\n') }}{% endif %}</textarea>
+
+            <!-- Busca de bairro -->
+            <div class="input-group input-group-sm mb-1">
+              <input type="text" id="bairro-busca" class="form-control"
+                placeholder="Buscar bairro..." oninput="filtrarBairros()">
+              <button type="button" class="btn btn-outline-secondary" onclick="limparBairros()">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+
+            <!-- Lista de sugestões -->
+            <div id="bairros-sugestoes" class="border rounded p-1 bg-light" style="display:none">
+              <div class="text-muted small p-2">
+                Selecione uma cidade acima para ver sugestões
+              </div>
+            </div>
+            <div class="form-text">Bairros consultados em tempo real via OpenStreetMap/IBGE. Deixe em branco para qualquer bairro.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── BLOCO 2: PERFIL DEMOGRÁFICO ───────────────────── -->
+      <div class="section-card">
+        <div class="section-title"><i class="bi bi-person me-1"></i>Perfil <span class="badge badge-banco ms-2">banco</span></div>
+        <div class="row g-3">
+
+          <!-- GÊNERO -->
+          <div class="col-md-3 filtro-banco">
+            <label class="form-label fw-semibold">Gênero</label>
+            <select name="genero" class="form-select">
+              <option value="ambos" {% if not filtros or filtros.genero == 'ambos' %}selected{% endif %}>Ambos</option>
+              <option value="F" {% if filtros and filtros.genero == 'F' %}selected{% endif %}>Feminino</option>
+              <option value="M" {% if filtros and filtros.genero == 'M' %}selected{% endif %}>Masculino</option>
+            </select>
+          </div>
+
+          <!-- IDADE -->
+          <div class="col-md-4 filtro-banco">
+            <label class="form-label fw-semibold">Faixa de Idade</label>
+            <div class="input-group">
+              <input type="number" name="idade_min" class="form-control" placeholder="18 (mín)"
+                min="18" max="120" value="{{ filtros.idade_min if filtros and filtros.idade_min else '' }}">
+              <span class="input-group-text">até</span>
+              <input type="number" name="idade_max" class="form-control" placeholder="70 (máx)"
+                min="18" max="120" value="{{ filtros.idade_max if filtros and filtros.idade_max else '' }}">
+            </div>
+            <div class="form-text">Padrão: 18–70 (protege menores e evita registros desatualizados).</div>
+          </div>
+
+          <!-- EMAIL -->
+          <div class="col-md-3 filtro-banco">
+            <label class="form-label fw-semibold">Email</label>
+            <select name="email" class="form-select">
+              <option value="nao_filtrar" {% if not filtros or filtros.email == 'nao_filtrar' %}selected{% endif %}>Qualquer (não filtrar)</option>
+              <option value="obrigatorio" {% if filtros and filtros.email == 'obrigatorio' %}selected{% endif %}>Obrigatório (só com email)</option>
+              <option value="preferencial" {% if filtros and filtros.email == 'preferencial' %}selected{% endif %}>Preferencial (email primeiro)</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── BLOCO 3: CONTATO ───────────────────────────────── -->
+      <div class="section-card">
+        <div class="section-title"><i class="bi bi-telephone me-1"></i>Contato <span class="badge badge-python ms-2">python</span></div>
+        <div class="row g-3">
+
+                <!-- TIPO TELEFONE -->
+          <div class="col-md-4 filtro-python">
+            <label class="form-label fw-semibold">Tipo de Telefone</label>
+            <select name="tipo_telefone" class="form-select">
+              <option value="movel" {% if not filtros or filtros.tipo_telefone == 'movel' %}selected{% endif %}>Móvel (celular)</option>
+              <option value="fixo" {% if filtros and filtros.tipo_telefone == 'fixo' %}selected{% endif %}>Fixo</option>
+              <option value="ambos" {% if filtros and filtros.tipo_telefone == 'ambos' %}selected{% endif %}>Ambos</option>
+            </select>
+            <div class="form-text">Identificado pelo nº de dígitos após retorno do banco.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── BLOCO 4: PROFISSÃO ─────────────────────────────── -->
+      <div class="section-card">
+        <div class="section-title"><i class="bi bi-briefcase me-1"></i>Profissão / CBO <span class="badge badge-python ms-2">python</span></div>
+        <div class="row g-3">
+          <div class="col-md-6 filtro-python">
+            <label class="form-label fw-semibold">Códigos CBO</label>
+            <textarea name="cbos" class="form-control" rows="2"
+              placeholder="Ex: 241005, 251605 (um por linha ou vírgula)">{% if filtros and filtros.cbos %}{{ filtros.cbos | join('\n') }}{% endif %}</textarea>
+            <div class="form-text">Deixe em branco para não filtrar por profissão.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BLOCO 5: QUANTIDADE ────────────────────────────── -->
+      <div class="section-card">
+        <div class="section-title"><i class="bi bi-hash me-1"></i>Quantidade</div>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Nº máx. de registros</label>
+            <input type="number" name="quantidade" class="form-control"
+              placeholder="Ex: 5000 (deixe vazio para todos)"
+              value="{{ filtros.quantidade if filtros and filtros.quantidade else '' }}">
+          </div>
+          <div class="col-md-9 d-flex gap-2 flex-wrap">
+            <!-- Levantamento -->
+            <button type="button" class="btn btn-lev text-white px-4"
+              onclick="fazerLevantamento()">
+              <i class="bi bi-search me-1"></i>Levantamento (Contagem)
+            </button>
+            <!-- Gerar lista -->
+            <button type="submit" class="btn btn-gerar text-white px-4">
+              <i class="bi bi-lightning-fill me-1"></i>Gerar Lista
+            </button>
+          </div>
+        </div>
+
+        <!-- Resultado do levantamento -->
+        <div id="levantamento-result" class="mt-3">
+          <div class="alert alert-info mb-0 py-2">
+            <strong><i class="bi bi-bar-chart-fill me-1"></i>Levantamento:</strong>
+            <span id="lev-total"></span> registros.
+            <small class="text-muted ms-2" id="lev-desc"></small>
+            <div class="text-warning small mt-1" id="lev-aviso"></div>
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- ── PREVIEW ────────────────────────────────────────────── -->
+    {% if preview %}
+    <div class="section-card">
+      <div class="section-title"><i class="bi bi-table me-1"></i>Preview — primeiros {{ preview | length }} registros</div>
+      <div class="preview-table-wrap">
+        <table class="table table-bordered table-hover table-sm mb-0">
+          <thead>
+            <tr>
+              {% for col in colunas_preview %}
+              <th>{{ col }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in preview %}
+            <tr>
+              {% for col in colunas_preview %}
+              <td>{{ row[col] if row[col] is not none else '' }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+  </div><!-- /main -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ============================================================
+// ESTADO LOCAL
+// ============================================================
+let bairrosDisponiveis = [];    // [{nome, rank}] carregados da API
+let bairrosSelecionados = [];   // nomes selecionados pelo usuário
+
+// Carrega bairros iniciais se houver filtros persistidos
+(function init() {
+  const hidden = document.getElementById('bairros-hidden').value.trim();
+  if (hidden) {
+    bairrosSelecionados = hidden.split('\n').filter(b => b.trim());
+    renderTags();
+  }
+})();
+
+// ============================================================
+// CARREGAMENTO DE BAIRROS VIA API (IBGE + OpenStreetMap)
+// ============================================================
+let _bairrosTimer = null;
+
+function carregarBairros() {
+  const cidadesRaw = document.getElementById('input-cidades').value;
+  const linhas = cidadesRaw.split(/[\n,;]+/).map(c => c.trim()).filter(Boolean);
+  const primeira = linhas[0];
+
+  if (!primeira) {
+    bairrosDisponiveis = [];
+    renderSugestoes();
+    document.getElementById('bairros-sugestoes').style.display = 'none';
+    return;
+  }
+
+  // Debounce: aguarda 800ms após última tecla antes de consultar
+  clearTimeout(_bairrosTimer);
+  _bairrosTimer = setTimeout(() => _buscarBairros(primeira), 800);
+}
+
+function _buscarBairros(cidade) {
+  // Normaliza: remove acentos, maiúsculo
+  const cidadeNorm = cidade
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase().trim();
+
+  const container = document.getElementById('bairros-sugestoes');
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div class="d-flex align-items-center gap-2 p-2 text-muted small">
+      <span class="spinner-border spinner-border-sm"></span>
+      Consultando IBGE + OpenStreetMap para <strong class="ms-1">${cidadeNorm}</strong>...
+    </div>`;
+
+  fetch(`/bairros/${encodeURIComponent(cidadeNorm)}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.erro) {
+        container.innerHTML = `<div class="text-danger small p-2"><i class="bi bi-exclamation-triangle me-1"></i>${data.erro}</div>`;
+        bairrosDisponiveis = [];
+        return;
+      }
+      bairrosDisponiveis = (data.bairros || []).map((nome, i) => ({ nome, rank: i + 1 }));
+      if (bairrosDisponiveis.length === 0) {
+        container.innerHTML = `<div class="text-muted small p-2">Nenhum bairro encontrado no OpenStreetMap para <strong>${cidadeNorm}</strong>. Digite manualmente acima.</div>`;
+      } else {
+        // Mostra fonte discretamente
+        const fonte = data.fonte ? `<div class="text-muted" style="font-size:0.7rem;padding:2px 6px">Fonte: ${data.fonte} — ${data.total} bairros</div>` : '';
+        container.setAttribute('data-fonte', fonte);
+        renderSugestoes();
+      }
+    })
+    .catch(() => {
+      bairrosDisponiveis = [];
+      container.innerHTML = '<div class="text-danger small p-2">Falha ao consultar a API de bairros.</div>';
+    });
+}
+
+// ============================================================
+// RENDERIZAÇÃO
+// ============================================================
+function renderSugestoes() {
+  const busca = document.getElementById('bairro-busca').value.toLowerCase();
+  const container = document.getElementById('bairros-sugestoes');
+
+  const filtrados = bairrosDisponiveis.filter(b =>
+    b.nome.toLowerCase().includes(busca) && !bairrosSelecionados.includes(b.nome)
+  );
+
+  if (!filtrados.length) {
+    container.innerHTML = '<div class="text-muted small p-2">Nenhum bairro encontrado</div>';
+    container.style.display = bairrosDisponiveis.length ? 'block' : 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  // Prepend fonte info se disponível
+  const fonteHtml = container.getAttribute('data-fonte') || '';
+  container.innerHTML = fonteHtml + filtrados.map(b => `
+    <div class="bairro-item" onclick="selecionarBairro('${b.nome.replace(/'/g,"\\'")}')">
+      <span>${b.nome.replace(/</g,'&lt;')}</span>
+      <span class="bairro-rank">#${b.rank}</span>
+    </div>`).join('');
+}
+
+function renderTags() {
+  const container = document.getElementById('bairros-tags');
+  container.innerHTML = bairrosSelecionados.map(b => `
+    <span class="bairro-tag">
+      ${b.replace(/</g,'&lt;')}
+      <span class="rm" onclick="removerBairro('${b.replace(/'/g,"\\'")}')">×</span>
+    </span>`).join('');
+  syncHidden();
+}
+
+function syncHidden() {
+  document.getElementById('bairros-hidden').value = bairrosSelecionados.join('\n');
+}
+
+// ============================================================
+// AÇÕES
+// ============================================================
+function selecionarBairro(nome) {
+  if (!bairrosSelecionados.includes(nome)) {
+    bairrosSelecionados.push(nome);
+    renderTags();
+    renderSugestoes();
+  }
+}
+
+function removerBairro(nome) {
+  bairrosSelecionados = bairrosSelecionados.filter(b => b !== nome);
+  renderTags();
+  renderSugestoes();
+}
+
+function limparBairros() {
+  bairrosSelecionados = [];
+  renderTags();
+  renderSugestoes();
+}
+
+function filtrarBairros() {
+  renderSugestoes();
+}
+
+// ============================================================
+// LEVANTAMENTO (CONTAGEM RÁPIDA)
+// ============================================================
+function fazerLevantamento() {
+  const form = document.getElementById('form-lista');
+  const formData = new FormData(form);
+  const btn = document.querySelector('.btn-lev');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Consultando...';
+
+  fetch('/levantamento', { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(data => {
+      const result = document.getElementById('levantamento-result');
+      result.style.display = 'block';
+      if (data.ok) {
+        document.getElementById('lev-total').textContent =
+          data.total_banco.toLocaleString('pt-BR');
+        document.getElementById('lev-desc').textContent = data.descricao || '';
+        document.getElementById('lev-aviso').textContent = data.aviso || '';
+      } else {
+        document.getElementById('lev-total').textContent = 'Erro: ' + data.erro;
+        document.getElementById('lev-desc').textContent = '';
+        document.getElementById('lev-aviso').textContent = '';
+      }
+    })
+    .catch(err => {
+      document.getElementById('levantamento-result').style.display = 'block';
+      document.getElementById('lev-total').textContent = 'Falha na conexão.';
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-search me-1"></i>Levantamento (Contagem)';
+    });
+}
+</script>
+</body>
+</html>
