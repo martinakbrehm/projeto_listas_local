@@ -164,24 +164,184 @@ A interface deve ser **intuitiva e eficiente**, permitindo que operadores não-t
 - **Label:** "Obrigatório (só registros com email)"
 - **Comportamento:** Quando marcado, remove registros sem email
 
-### 4.5 Quantidade
+### 4.5 Quantidade e Distribuição
 
-#### Tipo de Limite
-- **Tipo:** Radio buttons
-- **Opções:** 
-  - "Quantidade absoluta (número exato)"
-  - "Porcentagem do total filtrado"
+#### Lógica Geral
+O sistema deve suportar **distribuição proporcional** ou **absoluta** por diferentes dimensões:
 
-#### Valor
-- **Tipo:** Number input
-- **Validação:** 
-  - Absoluto: 1-50.000
-  - Porcentagem: 1-100%
-- **Formato:** Inteiro para absoluto, decimal para porcentagem
+- **Quantidade absoluta geral** + **distribuição proporcional** por localidade
+- **Quantidade absoluta geral** + **distribuição proporcional** por gênero
+- **Quantidade absoluta geral** + **distribuição proporcional** por profissão
+- **Combinações** dessas distribuições
+
+#### Interface de Quantidade
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   SEÇÃO: QUANTIDADE                          │
+│                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐                    │
+│  │ Quantidade Total│  │   Distribuição  │                    │
+│  │   (Absoluta)    │  │     (Tipo)      │                    │
+│  │     [5.000]     │  │   [Por Local]   │                    │
+│  └─────────────────┘  └─────────────────┘                    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │           DISTRIBUIÇÃO POR LOCALIDADE               │     │
+│  │                                                     │     │
+│  │ ☑ Por Cidade:                                      │     │
+│  │   São Paulo: 40%   Campinas: 30%   Santos: 30%      │     │
+│  │                                                     │     │
+│  │ ☑ Por Bairro:                                      │     │
+│  │   Centro: 25%   Jardins: 20%   Pinheiros: 15%      │     │
+│  │                                                     │     │
+│  │ ☑ Por Estado:                                      │     │
+│  │   SP: 70%   RJ: 20%   MG: 10%                      │     │
+│  │                                                     │     │
+│  └─────────────────────────────────────────────────────┘     │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │            DISTRIBUIÇÃO POR GÊNERO                  │     │
+│  │                                                     │     │
+│  │ ☑ Proporção H/M:                                   │     │
+│  │   Homens: 60%   Mulheres: 40%                       │     │
+│  │                                                     │     │
+│  └─────────────────────────────────────────────────────┘     │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │            DISTRIBUIÇÃO POR PROFISSÃO               │     │
+│  │                                                     │     │
+│  │ ☑ Por Categoria CBO:                                │     │
+│  │   Gerencial: 20%   Comercial: 30%   Técnico: 25%    │     │
+│  │   Serviços: 15%   Industrial: 10%                   │     │
+│  │                                                     │     │
+│  └─────────────────────────────────────────────────────┘     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Campos Específicos
+
+##### Quantidade Total
+- **Tipo:** Number input obrigatório
+- **Valores:** 1-50.000
+- **Função:** Define o total absoluto de registros desejado
+- **Validação:** Campo obrigatório
+
+##### Tipo de Distribuição
+- **Tipo:** Select dropdown
+- **Opções:**
+  - "Nenhuma distribuição (total aleatório)"
+  - "Por localidade (cidade/bairro/estado)"
+  - "Por gênero (homens/mulheres)"
+  - "Por profissão (categorias CBO)"
+  - "Múltipla (local + gênero + profissão)"
+
+##### Distribuição por Localidade
+- **Tipo:** Checkbox + inputs dinâmicos
+- **Opções:**
+  - ☐ **Por Cidade:** Campos porcentagem para cada cidade selecionada
+  - ☐ **Por Bairro:** Campos porcentagem para cada bairro selecionado
+  - ☐ **Por Estado:** Campos porcentagem para cada UF selecionada
+- **Comportamento:** Só aparece se "Por localidade" selecionado
+- **Validação:** Soma deve ser 100%
+
+##### Distribuição por Gênero
+- **Tipo:** Checkbox + inputs duplos
+- **Campos:** Homens (%): [60]   Mulheres (%): [40]
+- **Comportamento:** Só aparece se "Por gênero" selecionado
+- **Validação:** Soma deve ser 100%
+
+##### Distribuição por Profissão
+- **Tipo:** Checkbox + inputs múltiplos
+- **Fonte:** Categorias CBO selecionadas
+- **Campos:** Um input % para cada categoria marcada
+- **Comportamento:** Só aparece se "Por profissão" selecionado
+- **Validação:** Soma deve ser 100%
 
 ---
 
-## 5. Regras de Validação
+## 5. Lógica de Distribuição
+
+### 5.1 Princípios Gerais
+
+A distribuição funciona em **camadas hierárquicas**:
+
+1. **Quantidade Total:** Define o objetivo absoluto
+2. **Distribuição Primária:** Divide por localidade (cidade/bairro/estado)
+3. **Distribuição Secundária:** Dentro de cada localidade, divide por gênero
+4. **Distribuição Terciária:** Dentro de cada combinação local+gênero, divide por profissão
+
+### 5.2 Exemplos de Uso
+
+#### Exemplo 1: Distribuição por Cidade
+```
+Total: 5.000 registros
+Por Cidade:
+- São Paulo: 40% (2.000 registros)
+- Campinas: 30% (1.500 registros)  
+- Santos: 30% (1.500 registros)
+```
+
+#### Exemplo 2: Distribuição por Gênero
+```
+Total: 5.000 registros
+Por Gênero:
+- Homens: 60% (3.000 registros)
+- Mulheres: 40% (2.000 registros)
+```
+
+#### Exemplo 3: Distribuição Combinada
+```
+Total: 5.000 registros
+Por Cidade:
+- São Paulo: 40% (2.000) → Homens: 60% (1.200), Mulheres: 40% (800)
+- Campinas: 30% (1.500) → Homens: 60% (900), Mulheres: 40% (600)
+- Santos: 30% (1.500) → Homens: 60% (900), Mulheres: 40% (600)
+```
+
+#### Exemplo 4: Distribuição Completa
+```
+Total: 10.000 registros
+Por Cidade + Gênero + Profissão:
+
+São Paulo (40% = 4.000):
+├── Homens (60% = 2.400):
+│   ├── Gerencial: 20% (480)
+│   ├── Comercial: 30% (720)
+│   └── Técnico: 25% (600)
+└── Mulheres (40% = 1.600):
+    ├── Gerencial: 20% (320)
+    ├── Comercial: 30% (480)
+    └── Técnico: 25% (400)
+```
+
+### 5.3 Regras de Validação
+
+#### Somas Percentuais
+- **Cada nível deve somar 100%**
+- **Validação em tempo real** com feedback visual
+- **Ajuste automático** se soma > 100%
+
+#### Dependências
+- **Profissão só se gênero selecionado**
+- **Gênero só se localidade selecionada**
+- **Localidade pode ser independente**
+
+#### Limites Mínimos
+- **Mínimo por combinação:** 1 registro
+- **Ajuste proporcional** se combinação resultaria em < 1
+
+### 5.4 Interface Dinâmica
+
+#### Campos Condicionais
+- **Seleção de distribuição** mostra/esconde seções relevantes
+- **Campos de porcentagem** aparecem dinamicamente
+- **Validação visual** com cores (verde = válido, vermelho = inválido)
+
+#### Preview da Distribuição
+- **Tabela preview** mostrando quantidades por combinação
+- **Atualização em tempo real** conforme mudanças
+- **Alertas** para combinações que resultariam em zero registros
 
 ### 5.1 Campos Obrigatórios
 - **Estado (UF):** Sempre obrigatório
@@ -203,16 +363,17 @@ A interface deve ser **intuitiva e eficiente**, permitindo que operadores não-t
 
 ## 6. Fluxo de Uso
 
-### 6.1 Fluxo Básico
+### 6.1 Fluxo Básico Atualizado
 1. **Selecionar UF** (obrigatório)
 2. **Escolher cidades** (carregadas automaticamente)
 3. **Selecionar bairros** (opcional, com busca)
 4. **Definir características** (gênero, idade, profissão)
 5. **Escolher bairros nobres** (opcional)
 6. **Configurar contato** (telefone, email)
-7. **Definir quantidade** (absoluta ou porcentagem)
-8. **Fazer levantamento** (verificar contagem)
-9. **Gerar lista** (download automático)
+7. **Definir quantidade total** (absoluta obrigatória)
+8. **Configurar distribuição** (opcional: por local, gênero, profissão)
+9. **Fazer levantamento** (verificar distribuição resultante)
+10. **Gerar lista** (download automático com distribuição aplicada)
 
 ### 6.2 Levantamento
 - **Botão:** "Fazer Levantamento"
@@ -242,10 +403,23 @@ A interface deve ser **intuitiva e eficiente**, permitindo que operadores não-t
 - **Levantamento falhou:** Alert vermelho
 - **Geração falhou:** Alert vermelho + detalhes
 
-### 7.3 Estados de Sucesso
-- **Levantamento OK:** Badge verde com contagem
-- **Geração OK:** Download automático + toast verde
-- **Lista pronta:** Link para download adicional
+### 7.3 Estados de Distribuição
+
+#### Estados de Validação
+- **Distribuição válida:** Badge verde "100% ✓"
+- **Distribuição incompleta:** Badge amarelo "85% ⚠️"
+- **Distribuição inválida:** Badge vermelho "110% ❌"
+
+#### Preview da Distribuição
+- **Tabela dinâmica** mostrando quantidades por combinação
+- **Hierarquia visual:** Localidade → Gênero → Profissão
+- **Cálculo em tempo real** conforme mudanças nos percentuais
+- **Alertas visuais** para combinações que resultariam em zero
+
+#### Estados de Carregamento
+- **Calculando distribuição:** Spinner durante preview
+- **Aplicando filtros:** Progress durante levantamento
+- **Gerando com distribuição:** Progress bar mostrando avanço por combinação
 
 ---
 
@@ -289,7 +463,9 @@ A interface deve ser **intuitiva e eficiente**, permitindo que operadores não-t
 
 ### 10.1 Usabilidade
 - **Tempo para configuração básica:** < 2 minutos
-- **Taxa de erro:** < 5% em configurações válidas
+- **Tempo para configuração com distribuição:** < 5 minutos
+- **Taxa de erro na distribuição:** < 3% (validações impedem erros comuns)
+- **Precisão da distribuição:** ±1% do solicitado
 - **Satisfação:** > 4.5/5 em testes de usuário
 
 ### 10.2 Performance
