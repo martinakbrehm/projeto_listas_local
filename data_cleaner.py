@@ -144,16 +144,34 @@ def _validar_cpf(cpf) -> bool:
     - 11 dígitos
     - Não é sequência repetida (00000000000, 11111111111, ...)
     - Não é CPF de teste conhecido (12345678901, etc.)
+    - Não contém letras ou caracteres inválidos
     """
     if pd.isna(cpf) or cpf is None:
         return False
-    digits = re.sub(r"\D", "", str(cpf))
+    s = str(cpf).strip()
+
+    # CPF não pode conter letras
+    if any(c.isalpha() for c in s):
+        return False
+
+    # Extrair apenas dígitos
+    digits = re.sub(r"\D", "", s)
     if len(digits) != 11:
         return False
+
+    # Não pode ser sequência repetida
     if _RE_TODOS_IGUAIS.match(digits):
         return False
+
+    # Não pode ser CPF de teste conhecido
     if digits in _CPF_INVALIDOS_CONHECIDOS:
         return False
+
+    # Verificar se não é uma sequência numérica óbvia
+    # (além das já verificadas acima)
+    if digits in ["01234567890", "09876543210", "12345678900"]:
+        return False
+
     return True
 
 
@@ -164,12 +182,57 @@ def _validar_email(email) -> bool:
     s = str(email).strip()
     if not s or s.upper() in _STRINGS_INVALIDAS:
         return False
-    # Deve ter @ e ao menos um ponto após o @
+
+    # Verificações básicas de estrutura
     if "@" not in s:
         return False
     partes = s.split("@")
-    if len(partes) != 2 or not partes[0] or not partes[1] or "." not in partes[1]:
+    if len(partes) != 2:
+        return False  # múltiplos @
+
+    usuario, dominio = partes
+    if not usuario or not dominio:
+        return False  # @dominio ou usuario@
+
+    # Domínio deve ter pelo menos um ponto
+    if "." not in dominio:
         return False
+
+    # Verificações de caracteres inválidos
+    # Email não pode conter espaços
+    if " " in s:
+        return False
+
+    # Email não pode conter caracteres de controle ou inválidos
+    if any(ord(c) < 32 or ord(c) > 126 for c in s):
+        return False
+
+    # Usuário não pode começar ou terminar com ponto
+    if usuario.startswith(".") or usuario.endswith("."):
+        return False
+
+    # Domínio não pode começar ou terminar com ponto ou hífen
+    # Também não pode ter sequências inválidas como "-." ou ".-"
+    if (dominio.startswith(".") or dominio.endswith(".") or
+        dominio.startswith("-") or dominio.endswith("-") or
+        "-." in dominio or ".-" in dominio):
+        return False
+
+    # Verificações de comprimento
+    if len(s) > 254:  # RFC 5321
+        return False
+    if len(usuario) > 64:  # RFC 5321
+        return False
+
+    # Padrões comuns de email inválido
+    # Apenas números no usuário (muito suspeito)
+    if usuario.isdigit() and len(usuario) > 3:
+        return False
+
+    # Sequências suspeitas
+    if _RE_TODOS_IGUAIS.match(usuario) and len(usuario) > 2:
+        return False
+
     return True
 
 
@@ -179,19 +242,47 @@ def _validar_telefone(tel) -> bool:
     - 10 ou 11 dígitos
     - Não é sequência repetida
     - DDD entre 11 e 99 (não começa com 0)
+    - Não contém letras ou caracteres inválidos
     """
     if pd.isna(tel) or tel is None:
         return True   # campo vazio é OK
-    digits = re.sub(r"\D", "", str(tel))
-    if not digits:
+    s = str(tel).strip()
+    if not s:
         return True   # vazio = OK
+
+    # Extrair apenas dígitos
+    digits = re.sub(r"\D", "", s)
+
+    # Se não há dígitos, é inválido
+    if not digits:
+        return False
+
+    # Verificar se o original contém letras (telefone não pode ter letras)
+    if any(c.isalpha() for c in s):
+        return False
+
+    # Verificar comprimento
     if len(digits) not in (10, 11):
         return False
+
+    # Não pode ser sequência repetida
     if _RE_TODOS_IGUAIS.match(digits):
         return False
+
+    # DDD deve ser válido (11-99)
     ddd = int(digits[:2])
     if ddd < 11 or ddd > 99:
         return False
+
+    # Verificar padrões suspeitos
+    # Telefone não pode começar com 0 após DDD
+    if len(digits) == 11 and digits[2] == '0':
+        return False
+
+    # Nono dígito deve ser 6-9 para celular
+    if len(digits) == 11 and digits[2] not in '6789':
+        return False
+
     return True
 
 
@@ -204,9 +295,70 @@ def _validar_nome(nome) -> bool:
         return False
     if _eh_string_invalida(s):
         return False
+
     # Nome não pode ser só números
     if _RE_APENAS_NUMEROS.match(s):
         return False
+
+    # Nome não pode ser só símbolos/pontuação
+    if _RE_APENAS_SIMBOLOS.match(s):
+        return False
+
+    # Nome não pode conter apenas caracteres repetidos
+    if _RE_TODOS_IGUAIS.match(s) and len(s) > 2:
+        return False
+
+    # Nome deve conter pelo menos uma letra
+    if not any(c.isalpha() for c in s):
+        return False
+
+    # Nome não pode ter caracteres de controle ou inválidos
+    if any(ord(char) < 32 or ord(char) in (127, 129, 141, 143, 144, 157, 160) for char in s):
+        return False
+
+    # Nome não pode começar ou terminar com símbolos (exceto alguns aceitáveis)
+    simbolos_invalidos_inicio_fim = "!@#$%^&*()_+-=[]{}|;:,.<>?/~`"
+    if s[0] in simbolos_invalidos_inicio_fim or s[-1] in simbolos_invalidos_inicio_fim:
+        return False
+
+    # Verificar se não é apenas números com símbolos (ex: "123-456")
+    s_sem_simbolos = re.sub(r"[^\w\s]", "", s)
+    if s_sem_simbolos.isdigit():
+        return False
+
+    return True
+
+
+def _validar_localidade(local) -> bool:
+    """Retorna True se bairro/cidade/UF parecem válidos."""
+    if pd.isna(local) or local is None:
+        return True   # campo vazio é OK
+    s = str(local).strip()
+    if not s:
+        return True   # vazio = OK
+    if _eh_string_invalida(s):
+        return False
+
+    # Localidade não pode ser só números
+    if _RE_APENAS_NUMEROS.match(s):
+        return False
+
+    # Localidade não pode ser só símbolos
+    if _RE_APENAS_SIMBOLOS.match(s):
+        return False
+
+    # Deve conter pelo menos uma letra
+    if not any(c.isalpha() for c in s):
+        return False
+
+    # Não pode ter caracteres de controle (mas permite acentos latinos)
+    if any(ord(char) < 32 or ord(char) in (127, 129, 141, 143, 144, 157, 160) for char in s):
+        return False
+
+    # Comprimento mínimo para ser significativo
+    if len(s) < 2:
+        return False
+
     return True
 
 
@@ -241,9 +393,16 @@ def limpar_dataframe(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
 
     mask_validacao = pd.Series(False, index=df.index)
     for col in campos_texto_existentes:
-        mask_validacao |= df[col].apply(_eh_string_invalida)
+        if col in ["BAIRRO", "CIDADE"]:
+            # Para bairros e cidades, usar validação específica
+            mask_validacao |= ~df[col].apply(_validar_localidade)
+        else:
+            # Para outros campos, usar validação geral de string
+            mask_validacao |= df[col].apply(_eh_string_invalida)
 
     removidos_val = mask_validacao.sum()
+    if pd.isna(removidos_val) or removidos_val == "":
+        removidos_val = 0
     df = df[~mask_validacao]
     relatorio["removidos_validacao"] = int(removidos_val)
 
@@ -251,6 +410,8 @@ def limpar_dataframe(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     if "CPF" in df.columns:
         mask_cpf = ~df["CPF"].apply(_validar_cpf)
         removidos_cpf = mask_cpf.sum()
+        if pd.isna(removidos_cpf) or removidos_cpf == "":
+            removidos_cpf = 0
         df = df[~mask_cpf]
         relatorio["removidos_cpf"] = int(removidos_cpf)
 
@@ -258,6 +419,8 @@ def limpar_dataframe(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     if "NOME" in df.columns:
         mask_nome = ~df["NOME"].apply(_validar_nome)
         removidos_nome = mask_nome.sum()
+        if pd.isna(removidos_nome) or removidos_nome == "":
+            removidos_nome = 0
         df = df[~mask_nome]
         relatorio["removidos_nome"] = int(removidos_nome)
 

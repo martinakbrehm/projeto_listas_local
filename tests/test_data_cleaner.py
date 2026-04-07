@@ -21,6 +21,7 @@ from data_cleaner import (
     _validar_email,
     _validar_nome,
     _validar_telefone,
+    _validar_localidade,
     limpar_dataframe,
     relatorio_html,
 )
@@ -87,6 +88,20 @@ class TestValidarCpf:
     def test_cpf_longo_invalido(self):
         assert _validar_cpf("123456789012") is False
 
+    def test_cpf_com_letras_invalido(self):
+        assert _validar_cpf("123abc78901") is False
+
+    def test_cpf_com_letras_e_numeros_invalido(self):
+        assert _validar_cpf("12345a78901") is False
+
+    def test_cpf_apenas_letras_invalido(self):
+        assert _validar_cpf("abcdefghijk") is False
+
+    def test_sequencia_numerica_suspeita_invalida(self):
+        assert _validar_cpf("01234567890") is False
+        assert _validar_cpf("09876543210") is False
+        assert _validar_cpf("12345678900") is False
+
     def test_cpf_none_invalido(self):
         assert _validar_cpf(None) is False
 
@@ -118,6 +133,46 @@ class TestValidarEmail:
     def test_sem_usuario_invalido(self):
         assert _validar_email("@dominio.com") is False
 
+    def test_apenas_arroba_invalido(self):
+        assert _validar_email("@") is False
+
+    def test_multiplos_arroba_invalidos(self):
+        assert _validar_email("user@domain@com") is False
+
+    def test_email_com_espaco_invalido(self):
+        assert _validar_email("usuario @ dominio.com") is False
+
+    def test_usuario_com_ponto_inicio_invalido(self):
+        assert _validar_email(".usuario@dominio.com") is False
+
+    def test_usuario_com_ponto_fim_invalido(self):
+        assert _validar_email("usuario.@dominio.com") is False
+
+    def test_dominio_com_ponto_inicio_invalido(self):
+        assert _validar_email("usuario@.dominio.com") is False
+
+    def test_dominio_com_ponto_fim_invalido(self):
+        assert _validar_email("usuario@dominio.com.") is False
+
+    def test_dominio_com_hifen_inicio_invalido(self):
+        assert _validar_email("usuario@-dominio.com") is False
+
+    def test_dominio_com_hifen_fim_invalido(self):
+        assert _validar_email("usuario@dominio-.com") is False
+
+    def test_usuario_apenas_numeros_suspeito_invalido(self):
+        assert _validar_email("123456789@dominio.com") is False
+
+    def test_usuario_sequencia_repetida_invalida(self):
+        assert _validar_email("aaaaa@dominio.com") is False
+
+    def test_email_muito_longo_invalido(self):
+        email_longo = "a" * 65 + "@dominio.com"  # usuário > 64 chars
+        assert _validar_email(email_longo) is False
+
+    def test_email_com_caracteres_controle_invalidos(self):
+        assert _validar_email("usuario\x00@dominio.com") is False
+
     def test_string_invalida_invalida(self):
         assert _validar_email("EM VALIDACAO") is False
 
@@ -126,6 +181,12 @@ class TestValidarEmail:
 
     def test_email_com_subdominio_valido(self):
         assert _validar_email("x@sub.dominio.com.br") is True
+
+    def test_email_com_hifen_valido(self):
+        assert _validar_email("usuario@sub-dominio.com") is True
+
+    def test_email_com_numeros_valido(self):
+        assert _validar_email("user123@teste.com") is True
 
     def test_none_aceito(self):
         # Email vazio/None é aceito — filtragem de email vazio é separada
@@ -153,11 +214,38 @@ class TestValidarTelefone:
     def test_ddd_00_invalido(self):
         assert _validar_telefone("00987654321") is False
 
+    def test_com_letras_invalido(self):
+        assert _validar_telefone("11abc12345") is False
+
+    def test_com_letras_e_numeros_invalido(self):
+        assert _validar_telefone("11987a54321") is False
+
+    def test_apenas_letras_invalido(self):
+        assert _validar_telefone("abcdefghijk") is False
+
+    def test_celular_com_ddd_0_invalido(self):
+        assert _validar_telefone("11087654321") is False
+
+    def test_celular_nono_digito_invalido(self):
+        assert _validar_telefone("11587654321") is False  # 5 no nono dígito
+
     def test_celular_valido(self):
         assert _validar_telefone("11987654321") is True
 
     def test_fixo_valido(self):
         assert _validar_telefone("1132165498") is True
+
+    def test_com_mascara_valido(self):
+        assert _validar_telefone("(11) 98765-4321") is True
+
+    def test_com_espacos_valido(self):
+        assert _validar_telefone("11 98765 4321") is True
+
+    def test_none_aceito(self):
+        assert _validar_telefone(None) is True
+
+    def test_vazio_aceito(self):
+        assert _validar_telefone("") is True
 
     def test_none_aceito(self):
         assert _validar_telefone(None) is True
@@ -177,6 +265,30 @@ class TestValidarNome:
     def test_apenas_numeros_invalido(self):
         assert _validar_nome("12345678") is False
 
+    def test_numeros_com_simbolos_invalido(self):
+        assert _validar_nome("123-456") is False
+
+    def test_apenas_simbolos_invalido(self):
+        assert _validar_nome("!@#$%") is False
+
+    def test_apenas_pontuacao_invalida(self):
+        assert _validar_nome("...") is False
+
+    def test_sequencia_repetida_invalida(self):
+        assert _validar_nome("AAAAAAA") is False
+
+    def test_sem_letras_invalido(self):
+        assert _validar_nome("123!@#") is False
+
+    def test_com_caracteres_controle_invalidos(self):
+        assert _validar_nome("João\x00Silva") is False
+
+    def test_comeca_com_simbolo_invalido(self):
+        assert _validar_nome("@João") is False
+
+    def test_termina_com_simbolo_invalido(self):
+        assert _validar_nome("João!") is False
+
     def test_fulano_invalido(self):
         assert _validar_nome("FULANO") is False
 
@@ -191,6 +303,57 @@ class TestValidarNome:
 
     def test_nome_valido_composto(self):
         assert _validar_nome("MARIA DE FATIMA SOUZA") is True
+
+    def test_nome_com_acento_valido(self):
+        assert _validar_nome("JOSÉ DA SILVA") is True
+
+    def test_nome_com_apostrofo_valido(self):
+        assert _validar_nome("D'ALMEIDA") is True
+
+
+# ============================================================
+# _VALIDAR_LOCALIDADE
+# ============================================================
+
+class TestValidarLocalidade:
+    def test_none_aceito(self):
+        assert _validar_localidade(None) is True
+
+    def test_vazio_aceito(self):
+        assert _validar_localidade("") is True
+
+    def test_apenas_numeros_invalido(self):
+        assert _validar_localidade("12345") is False
+
+    def test_apenas_simbolos_invalido(self):
+        assert _validar_localidade("!@#$") is False
+
+    def test_sem_letras_invalido(self):
+        assert _validar_localidade("123!") is False
+
+    def test_muito_curto_invalido(self):
+        assert _validar_localidade("A") is False
+
+    def test_com_caracteres_invalidos_invalido(self):
+        assert _validar_localidade("São Paulo\x00") is False
+
+    def test_string_invalida_invalida(self):
+        assert _validar_localidade("EM VALIDACAO") is False
+
+    def test_bairro_valido(self):
+        assert _validar_localidade("JARDIM BOTANICO") is True
+
+    def test_cidade_valida(self):
+        assert _validar_localidade("SÃO PAULO") is True
+
+    def test_uf_valida(self):
+        assert _validar_localidade("SP") is True
+
+    def test_com_acento_valido(self):
+        assert _validar_localidade("SÃO VICENTE") is True
+
+    def test_com_hifen_valido(self):
+        assert _validar_localidade("BARRA DO PIRAI") is True
 
 
 # ============================================================
@@ -241,7 +404,9 @@ class TestLimparDataframe:
         df_limpo, r = limpar_dataframe(df)
         # Registro permanece, mas email é anulado
         assert len(df_limpo) == 1
-        assert df_limpo.iloc[0]["EMAIL_1"] is None
+        # Email deve ser NaN (pandas usa NaN para nulos)
+        import numpy as np
+        assert pd.isna(df_limpo.iloc[0]["EMAIL_1"])
         assert r["removidos_email"] >= 1
 
     def test_telefone_invalido_sobrescrito_nao_remove_registro(self):
@@ -253,7 +418,9 @@ class TestLimparDataframe:
         }])
         df_limpo, r = limpar_dataframe(df)
         assert len(df_limpo) == 1
-        assert df_limpo.iloc[0]["TELEFONE_1"] is None
+        # Telefone deve ser NaN (pandas usa NaN para nulos)
+        import numpy as np
+        assert pd.isna(df_limpo.iloc[0]["TELEFONE_1"])
         assert r["removidos_telefone"] >= 1
 
     def test_relatorio_contagens_corretas(self, df_com_sujeiras):
