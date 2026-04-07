@@ -167,12 +167,13 @@ A interface deve ser **intuitiva e eficiente**, permitindo que operadores não-t
 ### 4.5 Quantidade e Distribuição
 
 #### Lógica Geral
-O sistema deve suportar **distribuição proporcional** ou **absoluta** por diferentes dimensões:
+O sistema deve suportar **distribuição proporcional** ou **absoluta** por diferentes dimensões, com **bônus automático de 10%** mantendo a proporção exata.
 
 - **Quantidade absoluta geral** + **distribuição proporcional** por localidade
 - **Quantidade absoluta geral** + **distribuição proporcional** por gênero
 - **Quantidade absoluta geral** + **distribuição proporcional** por profissão
 - **Combinações** dessas distribuições
+- **Bônus automático:** +10% mantendo proporção exata
 
 #### Interface de Quantidade
 
@@ -182,38 +183,27 @@ O sistema deve suportar **distribuição proporcional** ou **absoluta** por dife
 │                                                             │
 │  ┌─────────────────┐  ┌─────────────────┐                    │
 │  │ Quantidade Total│  │   Distribuição  │                    │
-│  │   (Absoluta)    │  │     (Tipo)      │                    │
+│  │   (Solicitada)  │  │     (Tipo)      │                    │
 │  │     [5.000]     │  │   [Por Local]   │                    │
 │  └─────────────────┘  └─────────────────┘                    │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐     │
-│  │           DISTRIBUIÇÃO POR LOCALIDADE               │     │
+│  │                TOTAL COM BÔNUS                       │     │
 │  │                                                     │     │
+│  │ 🎁 Bônus automático: +10%                           │     │
+│  │ Total final: 5.500 registros                        │     │
+│  │                                                     │     │
+│  └─────────────────────────────────────────────────────┘     │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │           DISTRIBUIÇÃO POR LOCALIDADE               │     │
+│  │  (Mantém proporção exata no bônus)                 │     │
 │  │ ☑ Por Cidade:                                      │     │
-│  │   São Paulo: 40%   Campinas: 30%   Santos: 30%      │     │
+│  │   São Paulo: 40% (2.200)   Campinas: 30% (1.650)   │     │
+│  │   Santos: 30% (1.650)                              │     │
 │  │                                                     │     │
 │  │ ☑ Por Bairro:                                      │     │
-│  │   Centro: 25%   Jardins: 20%   Pinheiros: 15%      │     │
-│  │                                                     │     │
-│  │ ☑ Por Estado:                                      │     │
-│  │   SP: 70%   RJ: 20%   MG: 10%                      │     │
-│  │                                                     │     │
-│  └─────────────────────────────────────────────────────┘     │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐     │
-│  │            DISTRIBUIÇÃO POR GÊNERO                  │     │
-│  │                                                     │     │
-│  │ ☑ Proporção H/M:                                   │     │
-│  │   Homens: 60%   Mulheres: 40%                       │     │
-│  │                                                     │     │
-│  └─────────────────────────────────────────────────────┘     │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐     │
-│  │            DISTRIBUIÇÃO POR PROFISSÃO               │     │
-│  │                                                     │     │
-│  │ ☑ Por Categoria CBO:                                │     │
-│  │   Gerencial: 20%   Comercial: 30%   Técnico: 25%    │     │
-│  │   Serviços: 15%   Industrial: 10%                   │     │
+│  │   Centro: 25% (1.375)   Jardins: 20% (1.100)       │     │
 │  │                                                     │     │
 │  └─────────────────────────────────────────────────────┘     │
 └─────────────────────────────────────────────────────────────┘
@@ -264,12 +254,53 @@ O sistema deve suportar **distribuição proporcional** ou **absoluta** por dife
 
 ### 5.1 Princípios Gerais
 
-A distribuição funciona em **camadas hierárquicas**:
+A distribuição funciona em **camadas hierárquicas** com **bônus automático de 10%**:
 
-1. **Quantidade Total:** Define o objetivo absoluto
-2. **Distribuição Primária:** Divide por localidade (cidade/bairro/estado)
-3. **Distribuição Secundária:** Dentro de cada localidade, divide por gênero
-4. **Distribuição Terciária:** Dentro de cada combinação local+gênero, divide por profissão
+1. **Quantidade Solicitada:** Define o objetivo principal do cliente
+2. **Bônus Automático:** +10% calculado sobre a quantidade solicitada
+3. **Total Final:** Solicitado + Bônus (mantém proporção exata)
+4. **Distribuição Primária:** Divide por localidade (cidade/bairro/estado)
+5. **Distribuição Secundária:** Dentro de cada localidade, divide por gênero
+6. **Distribuição Terciária:** Dentro de cada combinação local+gênero, divide por profissão
+
+### 5.2 Lógica do Bônus Proporcional
+
+#### Cálculo Básico
+```
+Quantidade Solicitada: 5.000
+Bônus: 10% = 500
+Total Final: 5.500 registros
+```
+
+#### Distribuição com Bônus
+```
+Solicitado: 5.000
+├── São Paulo: 40% (2.000)
+├── Campinas: 30% (1.500)
+└── Santos: 30% (1.500)
+
+Bônus: +500 (10%)
+├── São Paulo: 40% (200) → Total: 2.200
+├── Campinas: 30% (150) → Total: 1.650
+└── Santos: 30% (150) → Total: 1.650
+```
+
+#### Distribuição Hierárquica com Bônus
+```
+Solicitado: 10.000
+Bônus: +1.000 (10%)
+Total Final: 11.000
+
+São Paulo (40% solicitado = 4.000 + 400 bônus = 4.400):
+├── Homens (60% = 2.640):
+│   ├── Gerencial: 20% (528)
+│   ├── Comercial: 30% (792)
+│   └── Técnico: 25% (660)
+└── Mulheres (40% = 1.760):
+    ├── Gerencial: 20% (352)
+    ├── Comercial: 30% (528)
+    └── Técnico: 25% (440)
+```
 
 ### 5.2 Exemplos de Uso
 
@@ -322,14 +353,22 @@ São Paulo (40% = 4.000):
 - **Validação em tempo real** com feedback visual
 - **Ajuste automático** se soma > 100%
 
+#### Bônus Proporcional
+- **Bônus sempre 10%** sobre quantidade solicitada
+- **Proporção exata mantida** em todas as distribuições
+- **Cálculo automático** não editável pelo usuário
+- **Arredondamento inteligente** para evitar frações
+
 #### Dependências
 - **Profissão só se gênero selecionado**
 - **Gênero só se localidade selecionada**
 - **Localidade pode ser independente**
+- **Bônus sempre aplicado** independente da distribuição
 
 #### Limites Mínimos
-- **Mínimo por combinação:** 1 registro
+- **Mínimo por combinação:** 1 registro (solicitado + bônus)
 - **Ajuste proporcional** se combinação resultaria em < 1
+- **Bônus nunca reduz** quantidade solicitada
 
 ### 5.4 Interface Dinâmica
 
@@ -414,6 +453,8 @@ São Paulo (40% = 4.000):
 - **Tabela dinâmica** mostrando quantidades por combinação
 - **Hierarquia visual:** Localidade → Gênero → Profissão
 - **Cálculo em tempo real** conforme mudanças nos percentuais
+- **Bônus destacado** em cor diferente (verde para bônus)
+- **Totais por nível** sempre visíveis
 - **Alertas visuais** para combinações que resultariam em zero
 
 #### Estados de Carregamento
@@ -466,6 +507,7 @@ São Paulo (40% = 4.000):
 - **Tempo para configuração com distribuição:** < 5 minutos
 - **Taxa de erro na distribuição:** < 3% (validações impedem erros comuns)
 - **Precisão da distribuição:** ±1% do solicitado
+- **Valor percebido do bônus:** +10% automático aumenta satisfação
 - **Satisfação:** > 4.5/5 em testes de usuário
 
 ### 10.2 Performance
@@ -474,8 +516,17 @@ São Paulo (40% = 4.000):
 - **Levantamento:** < 10 segundos para 100k registros
 - **Geração:** < 30 segundos para 10k registros
 
-### 10.3 Acessibilidade
-- **WCAG 2.1 AA:** 100% conformidade
-- **Navegação por teclado:** 100% funcional
-- **Leitores de tela:** 100% compatível</content>
+### 10.3 Benefícios do Bônus Automático
+
+#### Valor Percebido
+- **Cliente recebe mais** sem custo adicional
+- **Proporção mantida** = distribuição perfeita
+- **Surpresa positiva** aumenta satisfação
+- **Diferencial competitivo** no mercado
+
+#### Aspectos Técnicos
+- **Cálculo transparente** sempre 10% sobre solicitado
+- **Arredondamento inteligente** evita registros fracionados
+- **Aplicado automaticamente** não requer configuração
+- **Documentado claramente** no relatório final</content>
 <parameter name="filePath">c:\Users\marti\Desktop\Projeto Listas\docs\requisitos-usabilidade.md
