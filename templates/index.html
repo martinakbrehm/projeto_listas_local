@@ -38,79 +38,114 @@
       padding-bottom: .5rem;
     }
 
-    /* Bairros nobres */
-    .bairro-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: #e3f2fd;
-      color: #0d47a1;
-      border-radius: 20px;
-      padding: 2px 10px;
-      font-size: .8rem;
-      margin: 2px;
-      cursor: default;
+    /* Botões de radio modernos */
+    .btn-check:checked + .btn { background-color: #0d6efd; border-color: #0d6efd; }
+    .btn-outline-success { border-color: #198754; color: #198754; }
+    .btn-outline-success:hover { background-color: #198754; border-color: #198754; }
+    .btn-outline-info { border-color: #0dcaf0; color: #0dcaf0; }
+    .btn-outline-info:hover { background-color: #0dcaf0; border-color: #0dcaf0; }
+    .btn-outline-warning { border-color: #ffc107; color: #ffc107; }
+    .btn-outline-warning:hover { background-color: #ffc107; border-color: #ffc107; }
+
+    /* Sidebar melhorada */
+    .sidebar .badge { font-size: 0.65rem; }
+    .sidebar .btn-sm { padding: 0.2rem 0.5rem; font-size: 0.75rem; }
+
+    /* Cards de seção */
+    .section-card { transition: all 0.2s ease; }
+    .section-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .border-primary { border-color: #0d6efd !important; }
+    .border-success { border-color: #198754 !important; }
+
+    /* Estimativas */
+    #estimativa-registros, #estimativa-tempo, #estimativa-qualidade {
+      transition: all 0.3s ease;
     }
-    .bairro-tag .rm { cursor: pointer; color: #888; }
-    .bairro-tag .rm:hover { color: #c62828; }
 
-    #bairros-sugestoes { max-height: 260px; overflow-y: auto; }
-    .bairro-item {
-      cursor: pointer;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: .85rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    /* Notificações */
+    .notificacao-temp {
+      animation: slideInRight 0.3s ease-out;
     }
-    .bairro-item:hover { background: #e3f2fd; }
-    .bairro-rank { font-size: .7rem; color: #aaa; }
-
-    /* Levantamento badge */
-    #levantamento-result {
-      display: none;
-      animation: fadeIn .3s;
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
-    @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; } }
 
-    /* Preview table */
-    .preview-table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; }
-    .preview-table-wrap table { font-size: .78rem; }
-    .preview-table-wrap th { position: sticky; top: 0; background: #1a2238; color: #fff; z-index: 1; white-space: nowrap; }
+    /* Filtros ativos */
+    #filtros-ativos .badge {
+      font-size: 0.7rem;
+      margin-bottom: 0.25rem;
+    }
 
-    /* Botões */
-    .btn-gerar  { background: #1565c0; border-color: #1565c0; font-weight: 600; }
-    .btn-gerar:hover  { background: #0d47a1; border-color: #0d47a1; }
-    .btn-lev    { background: #00897b; border-color: #00897b; font-weight: 600; }
-    .btn-lev:hover    { background: #00695c; border-color:#00695c; }
+    /* Campos com botão de limpar */
+    .input-group .btn { border-left: none; }
+    .input-group .form-control { border-right: none; }
+    .input-group .form-control:focus { border-right: 1px solid #ced4da; }
 
-    .filtro-banco { border-left: 3px solid #1565c0; padding-left: .75rem; }
-    .filtro-python { border-left: 3px solid #00897b; padding-left: .75rem; }
-
-    .badge-banco  { background: #e3f0ff; color: #1565c0; font-size:.65rem; }
-    .badge-python { background: #e6f7f5; color: #00695c; font-size:.65rem; }
+    /* Responsividade */
+    @media (max-width: 768px) {
+      .sidebar { width: 100% !important; min-width: 100% !important; }
+      .btn-group { flex-direction: column; }
+      .btn-group .btn { margin-bottom: 0.25rem; }
+    }
   </style>
 </head>
 <body>
 <div class="d-flex">
 
   <!-- SIDEBAR -->
-  <div class="sidebar" style="width:210px; min-width:210px;">
+  <div class="sidebar" style="width:240px; min-width:240px;">
     <div class="logo"><i class="bi bi-list-check"></i></div>
     <h1>Gerador de Listas PF</h1>
     <hr style="border-color:#2c3e60">
-    <p class="small" style="color:#8fa8c8;">Filtros com borda azul vão ao banco. Filtros com borda verde são aplicados em Python.</p>
+
+    <!-- STATUS DOS FILTROS APLICADOS -->
+    <div class="mb-3">
+      <div class="small fw-bold text-light mb-2">
+        <i class="bi bi-funnel me-1"></i>FILTROS ATIVOS
+      </div>
+      <div id="filtros-ativos" class="small">
+        <div class="text-muted">Nenhum filtro aplicado</div>
+      </div>
+    </div>
+
     <hr style="border-color:#2c3e60">
-    <ul class="small" style="color:#8fa8c8; padding-left:1rem;">
-      <li>UF / Cidade / Bairro ← banco</li>
-      <li>Gênero ← banco</li>
-      <li>Idade ← banco</li>
-      <li>Email ← banco</li>
-      <li>Telefone ← python</li>
-      <li>Score ← python</li>
-      <li>CBO ← python</li>
-    </ul>
+
+    <!-- LEGENDA VISUAL -->
+    <div class="mb-3">
+      <div class="small fw-bold text-light mb-2">TIPO DE FILTRO</div>
+      <div class="d-flex align-items-center mb-1">
+        <div class="badge badge-banco me-2" style="width:12px; height:12px; border-radius:50%; padding:0;"></div>
+        <span class="small text-muted">Banco de dados (rápido)</span>
+      </div>
+      <div class="d-flex align-items-center">
+        <div class="badge badge-python me-2" style="width:12px; height:12px; border-radius:50%; padding:0;"></div>
+        <span class="small text-muted">Processamento (lento)</span>
+      </div>
+    </div>
+
+    <hr style="border-color:#2c3e60">
+
+    <!-- ATALHOS RÁPIDOS -->
+    <div class="mb-3">
+      <div class="small fw-bold text-light mb-2">
+        <i class="bi bi-star me-1"></i>ATALHOS
+      </div>
+      <div class="d-grid gap-1">
+        <button class="btn btn-sm btn-outline-light py-1 px-2 text-start" onclick="aplicarPreset('qualidade')">
+          <i class="bi bi-award me-1"></i>Alta Qualidade
+        </button>
+        <button class="btn btn-sm btn-outline-light py-1 px-2 text-start" onclick="aplicarPreset('volume')">
+          <i class="bi bi-graph-up me-1"></i>Maior Volume
+        </button>
+        <button class="btn btn-sm btn-outline-light py-1 px-2 text-start" onclick="aplicarPreset('rapido')">
+          <i class="bi bi-lightning me-1"></i>Processamento Rápido
+        </button>
+        <button class="btn btn-sm btn-outline-light py-1 px-2 text-start" onclick="limparTodosFiltros()">
+          <i class="bi bi-x-circle me-1"></i>Limpar Tudo
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- CONTEÚDO PRINCIPAL -->
@@ -149,16 +184,78 @@
 
     <form method="POST" action="/gerar" id="form-lista">
 
-      <!-- ── BLOCO 1: LOCALIZAÇÃO ──────────────────────────── -->
+      <!-- ── BLOCO 0: CONTROLES RÁPIDOS ────────────────────── -->
+      <div class="section-card border-primary">
+        <div class="section-title text-primary">
+          <i class="bi bi-rocket me-1"></i>INÍCIO RÁPIDO
+        </div>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Região Geográfica</label>
+            <select id="preset-regiao" class="form-select" onchange="aplicarPresetRegiao()">
+              <option value="">Selecione uma região...</option>
+              <option value="sp_capital">São Paulo (Capital)</option>
+              <option value="sp_interior">São Paulo (Interior)</option>
+              <option value="rj">Rio de Janeiro</option>
+              <option value="mg">Minas Gerais</option>
+              <option value="sudeste">Sudeste Completo</option>
+              <option value="sul">Região Sul</option>
+              <option value="nordeste">Nordeste</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Perfil de Contato</label>
+            <select id="preset-contato" class="form-select" onchange="aplicarPresetContato()">
+              <option value="">Selecione perfil...</option>
+              <option value="digital">Digital (Email + Celular)</option>
+              <option value="telefonico">Telefônico (Apenas telefone)</option>
+              <option value="equilibrado">Equilibrado (Ambos)</option>
+              <option value="basico">Básico (Qualquer contato)</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Tamanho da Lista</label>
+            <select id="preset-tamanho" class="form-select" onchange="aplicarPresetTamanho()">
+              <option value="">Selecione tamanho...</option>
+              <option value="pequena">Pequena (até 1.000)</option>
+              <option value="media">Média (até 5.000)</option>
+              <option value="grande">Grande (até 10.000)</option>
+              <option value="ilimitada">Ilimitada (todos)</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-3 p-3 bg-light rounded">
+          <div class="row text-center">
+            <div class="col-4">
+              <div class="fw-bold text-success" id="estimativa-registros">0</div>
+              <small class="text-muted">registros estimados</small>
+            </div>
+            <div class="col-4">
+              <div class="fw-bold text-info" id="estimativa-tempo">instantâneo</div>
+              <small class="text-muted">tempo de processamento</small>
+            </div>
+            <div class="col-4">
+              <div class="fw-bold text-warning" id="estimativa-qualidade">alta</div>
+              <small class="text-muted">qualidade estimada</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BLOCO 1: LOCALIZAÇÃO (PRINCIPAL) ──────────────── -->
       <div class="section-card">
-        <div class="section-title"><i class="bi bi-geo-alt me-1"></i>Localização <span class="badge badge-banco ms-2">banco</span></div>
+        <div class="section-title">
+          <i class="bi bi-geo-alt-fill me-1"></i>LOCALIZAÇÃO
+          <span class="badge badge-banco ms-2">banco</span>
+          <small class="text-muted ms-2">Obrigatório - define a base da busca</small>
+        </div>
         <div class="row g-3">
 
           <!-- UF -->
-          <div class="col-md-3 filtro-banco">
-            <label class="form-label fw-semibold">Estado (UF) <span class="text-danger">*</span></label>
-            <select name="ufs" id="select-uf" class="form-select" required onchange="carregarBairros()">
-              <option value="">Selecione...</option>
+          <div class="col-md-2 filtro-banco">
+            <label class="form-label fw-semibold">Estado <span class="text-danger">*</span></label>
+            <select name="ufs" id="select-uf" class="form-select" required onchange="atualizarEstimativas(); carregarBairros()">
+              <option value="">UF</option>
               {% for uf in ufs %}
               <option value="{{ uf }}" {% if filtros and filtros.ufs and uf in filtros.ufs %}selected{% endif %}>{{ uf }}</option>
               {% endfor %}
@@ -167,37 +264,51 @@
 
           <!-- CIDADES -->
           <div class="col-md-5 filtro-banco">
-            <label class="form-label fw-semibold">Cidade(s)</label>
-            <textarea name="cidades" id="input-cidades" class="form-control" rows="3"
-              placeholder="Ex: SAO PAULO, CAMPINAS (uma por linha ou vírgula)"
-              onchange="carregarBairros()"
-              onblur="carregarBairros()">{% if filtros and filtros.cidades %}{{ filtros.cidades | join('\n') }}{% endif %}</textarea>
-            <div class="form-text">Uma cidade por linha. Sem acento, em maiúsculo.</div>
+            <label class="form-label fw-semibold">Cidades</label>
+            <div class="input-group">
+              <textarea name="cidades" id="input-cidades" class="form-control" rows="2"
+                placeholder="Ex: SÃO PAULO, CAMPINAS&#10;Uma por linha ou separadas por vírgula"
+                onchange="atualizarEstimativas(); carregarBairros()"
+                onblur="atualizarEstimativas(); carregarBairros()"></textarea>
+              <button class="btn btn-outline-secondary" type="button" onclick="limparCampo('input-cidades')">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+            <div class="form-text">Digite cidades em maiúsculo, sem acentos</div>
           </div>
 
           <!-- BAIRROS -->
-          <div class="col-md-4 filtro-banco">
-            <label class="form-label fw-semibold">Bairros <span class="badge badge-banco">banco</span></label>
-
-            <!-- Tags de bairros selecionados -->
-            <div id="bairros-tags" class="mb-1"></div>
-            <!-- Input oculto que envia os bairros selecionados -->
-            <textarea name="bairros" id="bairros-hidden" class="d-none">{% if filtros and filtros.bairros %}{{ filtros.bairros | join('\n') }}{% endif %}</textarea>
-
-            <!-- Busca de bairro -->
-            <div class="input-group input-group-sm mb-1">
-              <input type="text" id="bairro-busca" class="form-control"
-                placeholder="Buscar bairro..." oninput="filtrarBairros()">
-              <button type="button" class="btn btn-outline-secondary" onclick="limparBairros()">
+          <div class="col-md-5 filtro-banco">
+            <label class="form-label fw-semibold">Bairros Específicos</label>
+            <div class="input-group">
+              <textarea name="bairros" id="bairros-hidden" class="form-control" rows="2"
+                placeholder="Deixe vazio para todos os bairros&#10;Ou selecione abaixo..."
+                onchange="atualizarEstimativas()"></textarea>
+              <button class="btn btn-outline-secondary" type="button" onclick="limparCampo('bairros-hidden')">
                 <i class="bi bi-x"></i>
               </button>
             </div>
 
-            <!-- Lista de sugestões -->
-            <div id="bairros-sugestoes" class="border rounded p-1 bg-light" style="display:none">
-              <div class="text-muted small p-2">
-                Selecione uma cidade acima para ver sugestões
+            <!-- Busca inteligente de bairros -->
+            <div class="input-group input-group-sm mt-2">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" id="bairro-busca" class="form-control"
+                placeholder="Buscar bairros..." oninput="filtrarBairros()">
+              <button type="button" class="btn btn-outline-secondary" onclick="limparBairros()">
+                <i class="bi bi-x-circle"></i>
+              </button>
+            </div>
+
+            <!-- Sugestões de bairros -->
+            <div id="bairros-sugestoes" class="border rounded p-2 bg-light mt-2" style="display:none; max-height:200px; overflow-y:auto;">
+              <div class="text-muted small p-1">
+                <i class="bi bi-info-circle me-1"></i>Selecione cidades acima para ver bairros disponíveis
               </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
             </div>
             <div class="form-text">Bairros consultados em tempo real via OpenStreetMap/IBGE. Deixe em branco para qualquer bairro.</div>
           </div>
@@ -207,109 +318,321 @@
 
       <!-- ── BLOCO 2: PERFIL DEMOGRÁFICO ───────────────────── -->
       <div class="section-card">
-        <div class="section-title"><i class="bi bi-person me-1"></i>Perfil <span class="badge badge-banco ms-2">banco</span></div>
+        <div class="section-title">
+          <i class="bi bi-person-circle me-1"></i>PERFIL DEMOGRÁFICO
+          <span class="badge badge-banco ms-2">banco</span>
+          <small class="text-muted ms-2">Refine por características pessoais</small>
+        </div>
         <div class="row g-3">
 
           <!-- GÊNERO -->
           <div class="col-md-3 filtro-banco">
             <label class="form-label fw-semibold">Gênero</label>
-            <select name="genero" class="form-select">
-              <option value="ambos" {% if not filtros or filtros.genero == 'ambos' %}selected{% endif %}>Ambos</option>
-              <option value="F" {% if filtros and filtros.genero == 'F' %}selected{% endif %}>Feminino</option>
-              <option value="M" {% if filtros and filtros.genero == 'M' %}selected{% endif %}>Masculino</option>
-            </select>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="genero" id="gen-ambos" value="ambos" autocomplete="off" checked>
+              <label class="btn btn-outline-primary" for="gen-ambos">Ambos</label>
+
+              <input type="radio" class="btn-check" name="genero" id="gen-fem" value="F" autocomplete="off">
+              <label class="btn btn-outline-primary" for="gen-fem">
+                <i class="bi bi-gender-female me-1"></i>Feminino
+              </label>
+
+              <input type="radio" class="btn-check" name="genero" id="gen-masc" value="M" autocomplete="off">
+              <label class="btn btn-outline-primary" for="gen-masc">
+                <i class="bi bi-gender-male me-1"></i>Masculino
+              </label>
+            </div>
           </div>
 
           <!-- IDADE -->
           <div class="col-md-4 filtro-banco">
-            <label class="form-label fw-semibold">Faixa de Idade</label>
-            <div class="input-group">
-              <input type="number" name="idade_min" class="form-control" placeholder="18 (mín)"
-                min="18" max="120" value="{{ filtros.idade_min if filtros and filtros.idade_min else '' }}">
-              <span class="input-group-text">até</span>
-              <input type="number" name="idade_max" class="form-control" placeholder="70 (máx)"
-                min="18" max="120" value="{{ filtros.idade_max if filtros and filtros.idade_max else '' }}">
+            <label class="form-label fw-semibold">Faixa Etária</label>
+            <div class="row g-2">
+              <div class="col-6">
+                <input type="number" name="idade_min" class="form-control" placeholder="18"
+                  min="18" max="120" value="18" onchange="atualizarEstimativas()">
+              </div>
+              <div class="col-6">
+                <input type="number" name="idade_max" class="form-control" placeholder="70"
+                  min="18" max="120" value="70" onchange="atualizarEstimativas()">
+              </div>
             </div>
-            <div class="form-text">Padrão: 18–70 (protege menores e evita registros desatualizados).</div>
+            <div class="form-text">
+              <i class="bi bi-shield-check text-success me-1"></i>Protege menores e dados desatualizados
+            </div>
           </div>
 
-          <!-- EMAIL -->
-          <div class="col-md-3 filtro-banco">
-            <label class="form-label fw-semibold">Email</label>
-            <select name="email" class="form-select">
-              <option value="nao_filtrar" {% if not filtros or filtros.email == 'nao_filtrar' %}selected{% endif %}>Qualquer (não filtrar)</option>
-              <option value="obrigatorio" {% if filtros and filtros.email == 'obrigatorio' %}selected{% endif %}>Obrigatório (só com email)</option>
-              <option value="preferencial" {% if filtros and filtros.email == 'preferencial' %}selected{% endif %}>Preferencial (email primeiro)</option>
-            </select>
+          <!-- QUALIDADE DE CONTATO -->
+          <div class="col-md-5 filtro-banco">
+            <label class="form-label fw-semibold">Qualidade de Contato</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="email" id="email-qualquer" value="nao_filtrar" autocomplete="off" checked>
+              <label class="btn btn-outline-success btn-sm" for="email-qualquer">
+                <i class="bi bi-dash-circle me-1"></i>Qualquer
+              </label>
+
+              <input type="radio" class="btn-check" name="email" id="email-obrigatorio" value="obrigatorio" autocomplete="off">
+              <label class="btn btn-outline-success btn-sm" for="email-obrigatorio">
+                <i class="bi bi-envelope-check me-1"></i>Email obrigatório
+              </label>
+
+              <input type="radio" class="btn-check" name="email" id="email-preferencial" value="preferencial" autocomplete="off">
+              <label class="btn btn-outline-success btn-sm" for="email-preferencial">
+                <i class="bi bi-envelope-plus me-1"></i>Email preferencial
+              </label>
+            </div>
+            <div class="form-text">Email aumenta significativamente a qualidade do contato</div>
           </div>
 
         </div>
       </div>
 
-      <!-- ── BLOCO 3: CONTATO ───────────────────────────────── -->
+      <!-- ── BLOCO 3: CONTATO E COMUNICAÇÃO ────────────────── -->
       <div class="section-card">
-        <div class="section-title"><i class="bi bi-telephone me-1"></i>Contato <span class="badge badge-python ms-2">python</span></div>
+        <div class="section-title">
+          <i class="bi bi-telephone-fill me-1"></i>CONTATO & COMUNICAÇÃO
+          <span class="badge badge-python ms-2">python</span>
+          <small class="text-muted ms-2">Validação avançada de telefones</small>
+        </div>
         <div class="row g-3">
 
-                <!-- TIPO TELEFONE -->
+          <!-- TIPO DE TELEFONE -->
           <div class="col-md-4 filtro-python">
             <label class="form-label fw-semibold">Tipo de Telefone</label>
-            <select name="tipo_telefone" class="form-select">
-              <option value="movel" {% if not filtros or filtros.tipo_telefone == 'movel' %}selected{% endif %}>Móvel (celular)</option>
-              <option value="fixo" {% if filtros and filtros.tipo_telefone == 'fixo' %}selected{% endif %}>Fixo</option>
-              <option value="ambos" {% if filtros and filtros.tipo_telefone == 'ambos' %}selected{% endif %}>Ambos</option>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="tipo_telefone" id="tel-movel" value="movel" autocomplete="off" checked>
+              <label class="btn btn-outline-info" for="tel-movel">
+                <i class="bi bi-phone me-1"></i>Móvel
+              </label>
+
+              <input type="radio" class="btn-check" name="tipo_telefone" id="tel-fixo" value="fixo" autocomplete="off">
+              <label class="btn btn-outline-info" for="tel-fixo">
+                <i class="bi bi-telephone me-1"></i>Fixo
+              </label>
+
+              <input type="radio" class="btn-check" name="tipo_telefone" id="tel-ambos" value="ambos" autocomplete="off">
+              <label class="btn btn-outline-info" for="tel-ambos">
+                <i class="bi bi-phone-vibrate me-1"></i>Ambos
+              </label>
+            </div>
+            <div class="form-text">Identificado automaticamente pelo número de dígitos</div>
+          </div>
+
+          <!-- REGIÃO DO DDD (OPCIONAL) -->
+          <div class="col-md-4 filtro-python">
+            <label class="form-label fw-semibold">Região do DDD (Opcional)</label>
+            <select name="ddd_regiao" class="form-select" onchange="atualizarEstimativas()">
+              <option value="">Qualquer DDD</option>
+              <option value="11,12,13,14,15,16,17,18,19">São Paulo (11-19)</option>
+              <option value="21,22,24">Rio de Janeiro (21-24)</option>
+              <option value="31,32,33,34,35,37,38">Minas Gerais (31-38)</option>
+              <option value="41,42,43,44,45,46">Paraná (41-46)</option>
+              <option value="51,53,54,55">Rio Grande do Sul (51-55)</option>
+              <option value="61,62,63,64,65,66,67,68,69">Centro-Oeste (61-69)</option>
+              <option value="71,73,74,75,77,79">Bahia (71-79)</option>
+              <option value="81,82,83,84,85,86,87,88,89">Nordeste (81-89)</option>
+              <option value="91,92,93,94,95,96,97,98,99">Norte (91-99)</option>
             </select>
-            <div class="form-text">Identificado pelo nº de dígitos após retorno do banco.</div>
+            <div class="form-text">Restringe telefones para regiões específicas</div>
+          </div>
+
+          <!-- VALIDAÇÃO DE CONTATO -->
+          <div class="col-md-4 filtro-python">
+            <label class="form-label fw-semibold">Validação de Contato</label>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="validar_contato" id="validar-contato" checked>
+              <label class="form-check-label" for="validar-contato">
+                <i class="bi bi-check-circle text-success me-1"></i>Remover contatos inválidos
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="preferir_email" id="preferir-email">
+              <label class="form-check-label" for="preferir-email">
+                <i class="bi bi-envelope-heart text-primary me-1"></i>Priorizar registros com email
+              </label>
+            </div>
+            <div class="form-text">Melhora drasticamente a qualidade da lista</div>
           </div>
 
         </div>
       </div>
 
-      <!-- ── BLOCO 4: PROFISSÃO ─────────────────────────────── -->
+      <!-- ── BLOCO 4: PROFISSÃO E SEGMENTO ─────────────────── -->
       <div class="section-card">
-        <div class="section-title"><i class="bi bi-briefcase me-1"></i>Profissão / CBO <span class="badge badge-python ms-2">python</span></div>
+        <div class="section-title">
+          <i class="bi bi-briefcase-fill me-1"></i>PROFISSÃO & SEGMENTO
+          <span class="badge badge-python ms-2">python</span>
+          <small class="text-muted ms-2">Opcional - filtra por atividade profissional</small>
+        </div>
         <div class="row g-3">
+
+          <!-- CBO POR CATEGORIA -->
           <div class="col-md-6 filtro-python">
-            <label class="form-label fw-semibold">Códigos CBO</label>
-            <textarea name="cbos" class="form-control" rows="2"
-              placeholder="Ex: 241005, 251605 (um por linha ou vírgula)">{% if filtros and filtros.cbos %}{{ filtros.cbos | join('\n') }}{% endif %}</textarea>
-            <div class="form-text">Deixe em branco para não filtrar por profissão.</div>
+            <label class="form-label fw-semibold">Categoria Profissional</label>
+            <select name="categoria_cbo" class="form-select" onchange="carregarCBOsPorCategoria(); atualizarEstimativas()">
+              <option value="">Qualquer profissão</option>
+              <option value="gerencial">Gerencial / Executivo</option>
+              <option value="comercial">Comercial / Vendas</option>
+              <option value="tecnico">Técnico / Profissional</option>
+              <option value="servicos">Serviços Gerais</option>
+              <option value="industrial">Industrial / Produção</option>
+              <option value="saude">Saúde / Bem-estar</option>
+              <option value="educacao">Educação</option>
+              <option value="tecnologia">Tecnologia / TI</option>
+              <option value="financeiro">Financeiro / Contábil</option>
+              <option value="juridico">Jurídico</option>
+            </select>
           </div>
+
+          <!-- CBO ESPECÍFICOS -->
+          <div class="col-md-6 filtro-python">
+            <label class="form-label fw-semibold">Códigos CBO Específicos</label>
+            <div class="input-group">
+              <textarea name="cbos" id="input-cbos" class="form-control" rows="2"
+                placeholder="Ex: 241005, 251605&#10;Ou deixe vazio para usar categoria acima"
+                onchange="atualizarEstimativas()"></textarea>
+              <button class="btn btn-outline-secondary" type="button" onclick="limparCampo('input-cbos')">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+            <div class="form-text">
+              <i class="bi bi-info-circle text-info me-1"></i>
+              Use códigos CBO ou selecione categoria acima
+            </div>
+          </div>
+
+          <!-- SEGMENTO SOCIOECONÔMICO -->
+          <div class="col-md-6 filtro-python">
+            <label class="form-label fw-semibold">Segmento Socioeconômico</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="segmento" id="seg-qualquer" value="" autocomplete="off" checked>
+              <label class="btn btn-outline-warning btn-sm" for="seg-qualquer">Qualquer</label>
+
+              <input type="radio" class="btn-check" name="segmento" id="seg-alto" value="alto" autocomplete="off">
+              <label class="btn btn-outline-warning btn-sm" for="seg-alto">
+                <i class="bi bi-star-fill me-1"></i>Alto
+              </label>
+
+              <input type="radio" class="btn-check" name="segmento" id="seg-medio" value="medio" autocomplete="off">
+              <label class="btn btn-outline-warning btn-sm" for="seg-medio">
+                <i class="bi bi-dash me-1"></i>Médio
+              </label>
+
+              <input type="radio" class="btn-check" name="segmento" id="seg-basico" value="basico" autocomplete="off">
+              <label class="btn btn-outline-warning btn-sm" for="seg-basico">
+                <i class="bi bi-circle me-1"></i>Básico
+              </label>
+            </div>
+            <div class="form-text">Estimado por profissão e localização</div>
+          </div>
+
+          <!-- RENDA ESTIMADA -->
+          <div class="col-md-6 filtro-python">
+            <label class="form-label fw-semibold">Faixa de Renda Estimada</label>
+            <div class="row g-2">
+              <div class="col-6">
+                <select name="renda_min" class="form-select" onchange="atualizarEstimativas()">
+                  <option value="">Mínima</option>
+                  <option value="2000">R$ 2.000</option>
+                  <option value="5000">R$ 5.000</option>
+                  <option value="10000">R$ 10.000</option>
+                  <option value="20000">R$ 20.000</option>
+                  <option value="50000">R$ 50.000</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <select name="renda_max" class="form-select" onchange="atualizarEstimativas()">
+                  <option value="">Máxima</option>
+                  <option value="5000">R$ 5.000</option>
+                  <option value="10000">R$ 10.000</option>
+                  <option value="20000">R$ 20.000</option>
+                  <option value="50000">R$ 50.000</option>
+                  <option value="100000">R$ 100.000+</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-text">Estimativa baseada em CBO e região</div>
+          </div>
+
         </div>
       </div>
 
-      <!-- ── BLOCO 5: QUANTIDADE ────────────────────────────── -->
-      <div class="section-card">
-        <div class="section-title"><i class="bi bi-hash me-1"></i>Quantidade</div>
+      <!-- ── BLOCO 5: CONTROLES FINAIS ─────────────────────── -->
+      <div class="section-card border-success">
+        <div class="section-title text-success">
+          <i class="bi bi-check-circle-fill me-1"></i>FINALIZAÇÃO
+        </div>
         <div class="row g-3 align-items-end">
-          <div class="col-md-3">
-            <label class="form-label fw-semibold">Nº máx. de registros</label>
-            <input type="number" name="quantidade" class="form-control"
-              placeholder="Ex: 5000 (deixe vazio para todos)"
-              value="{{ filtros.quantidade if filtros and filtros.quantidade else '' }}">
+
+          <!-- QUANTIDADE -->
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Tamanho da Lista</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-hash"></i></span>
+              <input type="number" name="quantidade" id="input-quantidade" class="form-control"
+                placeholder="Ex: 5000 (vazio = todos)"
+                min="1" max="50000" onchange="atualizarEstimativas()">
+              <button class="btn btn-outline-secondary" type="button" onclick="limparCampo('input-quantidade')">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+            <div class="form-text">Máximo 50.000 registros por lista</div>
           </div>
-          <div class="col-md-9 d-flex gap-2 flex-wrap">
-            <!-- Levantamento -->
-            <button type="button" class="btn btn-lev text-white px-4"
-              onclick="fazerLevantamento()">
-              <i class="bi bi-search me-1"></i>Levantamento (Contagem)
-            </button>
-            <!-- Gerar lista -->
-            <button type="submit" class="btn btn-gerar text-white px-4">
-              <i class="bi bi-lightning-fill me-1"></i>Gerar Lista
-            </button>
+
+          <!-- FORMATO DE SAÍDA -->
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Formato de Saída</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="formato" id="fmt-excel" value="excel" autocomplete="off" checked>
+              <label class="btn btn-outline-primary" for="fmt-excel">
+                <i class="bi bi-file-earmark-excel me-1"></i>Excel
+              </label>
+
+              <input type="radio" class="btn-check" name="formato" id="fmt-csv" value="csv" autocomplete="off">
+              <label class="btn btn-outline-primary" for="fmt-csv">
+                <i class="bi bi-filetype-csv me-1"></i>CSV
+              </label>
+            </div>
+            <div class="form-text">Excel recomendado para melhor formatação</div>
+          </div>
+
+          <!-- AÇÕES -->
+          <div class="col-md-4">
+            <div class="d-grid gap-2">
+              <!-- Levantamento -->
+              <button type="button" class="btn btn-lev text-white"
+                onclick="fazerLevantamento()">
+                <i class="bi bi-search me-1"></i>Levantamento (Contagem)
+              </button>
+              <!-- Gerar lista -->
+              <button type="submit" class="btn btn-gerar text-white">
+                <i class="bi bi-lightning-fill me-1"></i>Gerar Lista Completa
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RESULTADO DO LEVANTAMENTO -->
+        <div id="levantamento-result" class="mt-3">
+          <div class="alert alert-info mb-0 py-3">
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="h4 mb-1" id="lev-total">0</div>
+                <small class="text-muted">registros encontrados</small>
+              </div>
+              <div class="col-4">
+                <div class="h4 mb-1 text-success" id="lev-validos">0</div>
+                <small class="text-muted">após validação</small>
+              </div>
+              <div class="col-4">
+                <div class="h4 mb-1 text-warning" id="lev-tempo">0s</div>
+                <small class="text-muted">tempo estimado</small>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Resultado do levantamento -->
-        <div id="levantamento-result" class="mt-3">
-          <div class="alert alert-info mb-0 py-2">
-            <strong><i class="bi bi-bar-chart-fill me-1"></i>Levantamento:</strong>
-            <span id="lev-total"></span> registros.
-            <small class="text-muted ms-2" id="lev-desc"></small>
-            <div class="text-warning small mt-1" id="lev-aviso"></div>
-          </div>
-        </div>
       </div>
 
     </form>
@@ -490,40 +813,384 @@ function filtrarBairros() {
 }
 
 // ============================================================
-// LEVANTAMENTO (CONTAGEM RÁPIDA)
+// PRESETS E ATALHOS DE USABILIDADE
 // ============================================================
-function fazerLevantamento() {
-  const form = document.getElementById('form-lista');
-  const formData = new FormData(form);
-  const btn = document.querySelector('.btn-lev');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Consultando...';
 
-  fetch('/levantamento', { method: 'POST', body: formData })
-    .then(r => r.json())
-    .then(data => {
-      const result = document.getElementById('levantamento-result');
-      result.style.display = 'block';
-      if (data.ok) {
-        document.getElementById('lev-total').textContent =
-          data.total_banco.toLocaleString('pt-BR');
-        document.getElementById('lev-desc').textContent = data.descricao || '';
-        document.getElementById('lev-aviso').textContent = data.aviso || '';
-      } else {
-        document.getElementById('lev-total').textContent = 'Erro: ' + data.erro;
-        document.getElementById('lev-desc').textContent = '';
-        document.getElementById('lev-aviso').textContent = '';
-      }
-    })
-    .catch(err => {
-      document.getElementById('levantamento-result').style.display = 'block';
-      document.getElementById('lev-total').textContent = 'Falha na conexão.';
-    })
-    .finally(() => {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-search me-1"></i>Levantamento (Contagem)';
-    });
+function aplicarPreset(tipo) {
+  // Limpa formulário primeiro
+  limparTodosFiltros();
+
+  switch(tipo) {
+    case 'qualidade':
+      // Preset para máxima qualidade
+      document.querySelector('input[name="email"][value="obrigatorio"]').checked = true;
+      document.querySelector('input[name="tipo_telefone"][value="movel"]').checked = true;
+      document.getElementById('validar-contato').checked = true;
+      document.getElementById('preferir-email').checked = true;
+      document.querySelector('input[name="segmento"][value="alto"]').checked = true;
+      document.getElementById('input-quantidade').value = '10000';
+      mostrarNotificacao('Preset "Alta Qualidade" aplicado!', 'success');
+      break;
+
+    case 'volume':
+      // Preset para maior volume
+      document.querySelector('input[name="email"][value="nao_filtrar"]').checked = true;
+      document.querySelector('input[name="tipo_telefone"][value="ambos"]').checked = true;
+      document.getElementById('validar-contato').checked = false;
+      document.querySelector('input[name="segmento"][value=""]').checked = true;
+      document.getElementById('input-quantidade').value = '50000';
+      mostrarNotificacao('Preset "Maior Volume" aplicado!', 'info');
+      break;
+
+    case 'rapido':
+      // Preset para processamento rápido
+      document.querySelector('input[name="email"][value="nao_filtrar"]').checked = true;
+      document.querySelector('input[name="tipo_telefone"][value="movel"]').checked = true;
+      document.getElementById('validar-contato').checked = false;
+      document.querySelector('input[name="segmento"][value=""]').checked = true;
+      document.getElementById('input-quantidade').value = '5000';
+      mostrarNotificacao('Preset "Processamento Rápido" aplicado!', 'warning');
+      break;
+  }
+
+  atualizarEstimativas();
+  atualizarFiltrosAtivos();
 }
+
+function aplicarPresetRegiao() {
+  const select = document.getElementById('preset-regiao');
+  const valor = select.value;
+
+  if (!valor) return;
+
+  // Limpa campos de localização
+  document.getElementById('select-uf').value = '';
+  document.getElementById('input-cidades').value = '';
+  document.getElementById('bairros-hidden').value = '';
+  bairrosSelecionados = [];
+  renderTags();
+
+  switch(valor) {
+    case 'sp_capital':
+      document.getElementById('select-uf').value = 'SP';
+      document.getElementById('input-cidades').value = 'SAO PAULO';
+      break;
+    case 'sp_interior':
+      document.getElementById('select-uf').value = 'SP';
+      document.getElementById('input-cidades').value = 'CAMPINAS\nSOROCABA\nSANTO ANDRE\nSANTOS';
+      break;
+    case 'rj':
+      document.getElementById('select-uf').value = 'RJ';
+      document.getElementById('input-cidades').value = 'RIO DE JANEIRO\nNITERÓI\nDUQUE DE CAXIAS';
+      break;
+    case 'mg':
+      document.getElementById('select-uf').value = 'MG';
+      document.getElementById('input-cidades').value = 'BELO HORIZONTE\nCONTAGEM\nUBERLANDIA';
+      break;
+    case 'sudeste':
+      document.getElementById('select-uf').value = 'SP,RJ,MG,ES';
+      break;
+    case 'sul':
+      document.getElementById('select-uf').value = 'RS,SC,PR';
+      break;
+    case 'nordeste':
+      document.getElementById('select-uf').value = 'BA,PE,CE,RN,PB,PI,AL,SE,MA';
+      break;
+  }
+
+  // Atualiza bairros se aplicável
+  if (valor !== 'sudeste' && valor !== 'sul' && valor !== 'nordeste') {
+    carregarBairros();
+  }
+
+  atualizarEstimativas();
+  atualizarFiltrosAtivos();
+  mostrarNotificacao(`Região "${select.options[select.selectedIndex].text}" aplicada!`, 'info');
+}
+
+function aplicarPresetContato() {
+  const select = document.getElementById('preset-contato');
+  const valor = select.value;
+
+  if (!valor) return;
+
+  switch(valor) {
+    case 'digital':
+      document.querySelector('input[name="email"][value="obrigatorio"]').checked = true;
+      document.querySelector('input[name="tipo_telefone"][value="movel"]').checked = true;
+      document.getElementById('validar-contato').checked = true;
+      document.getElementById('preferir-email').checked = true;
+      break;
+    case 'telefonico':
+      document.querySelector('input[name="email"][value="nao_filtrar"]').checked = true;
+      document.querySelector('input[name="tipo_telefone"][value="ambos"]').checked = true;
+      document.getElementById('validar-contato').checked = true;
+      document.getElementById('preferir-email').checked = false;
+      break;
+    case 'equilibrado':
+      document.querySelector('input[name="email"][value="preferencial"]').checked = true;
+      document.querySelector('input[name="tipo_telefone"][value="ambos"]').checked = true;
+      document.getElementById('validar-contato').checked = true;
+      document.getElementById('preferir-email').checked = false;
+      break;
+    case 'basico':
+      document.querySelector('input[name="email"][value="nao_filtrar"]').checked = true;
+      document.querySelector('input[name="tipo_telefone"][value="ambos"]').checked = true;
+      document.getElementById('validar-contato').checked = false;
+      document.getElementById('preferir-email').checked = false;
+      break;
+  }
+
+  atualizarEstimativas();
+  atualizarFiltrosAtivos();
+  mostrarNotificacao(`Perfil "${select.options[select.selectedIndex].text}" aplicado!`, 'success');
+}
+
+function aplicarPresetTamanho() {
+  const select = document.getElementById('preset-tamanho');
+  const valor = select.value;
+
+  if (!valor) return;
+
+  switch(valor) {
+    case 'pequena':
+      document.getElementById('input-quantidade').value = '1000';
+      break;
+    case 'media':
+      document.getElementById('input-quantidade').value = '5000';
+      break;
+    case 'grande':
+      document.getElementById('input-quantidade').value = '10000';
+      break;
+    case 'ilimitada':
+      document.getElementById('input-quantidade').value = '';
+      break;
+  }
+
+  atualizarEstimativas();
+  mostrarNotificacao(`Tamanho "${select.options[select.selectedIndex].text}" definido!`, 'info');
+}
+
+// ============================================================
+// UTILITÁRIOS DE INTERFACE
+// ============================================================
+
+function limparCampo(id) {
+  document.getElementById(id).value = '';
+  atualizarEstimativas();
+  atualizarFiltrosAtivos();
+}
+
+function limparTodosFiltros() {
+  // Localização
+  document.getElementById('select-uf').value = '';
+  document.getElementById('input-cidades').value = '';
+  document.getElementById('bairros-hidden').value = '';
+  bairrosSelecionados = [];
+  renderTags();
+
+  // Perfil
+  document.querySelector('input[name="genero"][value="ambos"]').checked = true;
+  document.querySelector('input[name="idade_min"]').value = '18';
+  document.querySelector('input[name="idade_max"]').value = '70';
+  document.querySelector('input[name="email"][value="nao_filtrar"]').checked = true;
+
+  // Contato
+  document.querySelector('input[name="tipo_telefone"][value="movel"]').checked = true;
+  document.getElementById('validar-contato').checked = true;
+  document.getElementById('preferir-email').checked = false;
+
+  // Profissão
+  document.querySelector('select[name="categoria_cbo"]').value = '';
+  document.getElementById('input-cbos').value = '';
+  document.querySelector('input[name="segmento"][value=""]').checked = true;
+
+  // Quantidade
+  document.getElementById('input-quantidade').value = '';
+
+  atualizarEstimativas();
+  atualizarFiltrosAtivos();
+  mostrarNotificacao('Todos os filtros foram limpos!', 'warning');
+}
+
+function mostrarNotificacao(mensagem, tipo) {
+  // Remove notificações anteriores
+  const existentes = document.querySelectorAll('.notificacao-temp');
+  existentes.forEach(el => el.remove());
+
+  // Cria nova notificação
+  const notificacao = document.createElement('div');
+  notificacao.className = `alert alert-${tipo} alert-dismissible notificacao-temp position-fixed`;
+  notificacao.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+  notificacao.innerHTML = `
+    <i class="bi bi-${tipo === 'success' ? 'check-circle' : tipo === 'info' ? 'info-circle' : tipo === 'warning' ? 'exclamation-triangle' : 'x-circle'} me-2"></i>
+    ${mensagem}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+
+  document.body.appendChild(notificacao);
+
+  // Remove automaticamente após 3 segundos
+  setTimeout(() => {
+    if (notificacao.parentNode) {
+      notificacao.remove();
+    }
+  }, 3000);
+}
+
+// ============================================================
+// ESTIMATIVAS E STATUS
+// ============================================================
+
+function atualizarEstimativas() {
+  const uf = document.getElementById('select-uf').value;
+  const cidades = document.getElementById('input-cidades').value.split(/[\n,;]+/).filter(c => c.trim()).length;
+  const bairros = bairrosSelecionados.length;
+  const email = document.querySelector('input[name="email"]:checked').value;
+  const telefone = document.querySelector('input[name="tipo_telefone"]:checked').value;
+  const cbo = document.getElementById('input-cbos').value.trim() || document.querySelector('select[name="categoria_cbo"]').value;
+  const quantidade = document.getElementById('input-quantidade').value;
+
+  // Estimativa de registros (simplificada)
+  let estimativa = 0;
+  if (uf) {
+    estimativa = uf === 'SP' ? 150000 : uf === 'RJ' ? 80000 : uf === 'MG' ? 60000 : 30000;
+    if (cidades > 0) estimativa = Math.round(estimativa * (cidades / 10));
+    if (bairros > 0) estimativa = Math.round(estimativa * (bairros / 50));
+    if (email === 'obrigatorio') estimativa = Math.round(estimativa * 0.3);
+    if (cbo) estimativa = Math.round(estimativa * 0.1);
+  }
+
+  // Estimativa de tempo
+  let tempo = 'instantâneo';
+  let qualidade = 'baixa';
+
+  if (cbo || telefone !== 'movel') {
+    tempo = '~2-5 min';
+    qualidade = 'média';
+  }
+  if (email === 'obrigatorio' || document.getElementById('validar-contato').checked) {
+    tempo = '~5-15 min';
+    qualidade = 'alta';
+  }
+
+  // Atualiza interface
+  document.getElementById('estimativa-registros').textContent = estimativa.toLocaleString('pt-BR');
+  document.getElementById('estimativa-tempo').textContent = tempo;
+  document.getElementById('estimativa-qualidade').textContent = qualidade;
+}
+
+function atualizarFiltrosAtivos() {
+  const ativos = [];
+
+  // UF
+  const uf = document.getElementById('select-uf').value;
+  if (uf) ativos.push(`UF: ${uf}`);
+
+  // Cidades
+  const cidades = document.getElementById('input-cidades').value.trim();
+  if (cidades) {
+    const count = cidades.split(/[\n,;]+/).filter(c => c.trim()).length;
+    ativos.push(`Cidades: ${count}`);
+  }
+
+  // Bairros
+  if (bairrosSelecionados.length > 0) {
+    ativos.push(`Bairros: ${bairrosSelecionados.length}`);
+  }
+
+  // Gênero
+  const genero = document.querySelector('input[name="genero"]:checked').value;
+  if (genero !== 'ambos') ativos.push(`Gênero: ${genero === 'F' ? 'Feminino' : 'Masculino'}`);
+
+  // Idade
+  const idadeMin = document.querySelector('input[name="idade_min"]').value;
+  const idadeMax = document.querySelector('input[name="idade_max"]').value;
+  if (idadeMin !== '18' || idadeMax !== '70') {
+    ativos.push(`Idade: ${idadeMin}-${idadeMax}`);
+  }
+
+  // Email
+  const email = document.querySelector('input[name="email"]:checked').value;
+  if (email !== 'nao_filtrar') {
+    const labels = {'obrigatorio': 'Obrigatório', 'preferencial': 'Preferencial'};
+    ativos.push(`Email: ${labels[email]}`);
+  }
+
+  // Telefone
+  const telefone = document.querySelector('input[name="tipo_telefone"]:checked').value;
+  if (telefone !== 'movel') {
+    const labels = {'fixo': 'Fixo', 'ambos': 'Ambos'};
+    ativos.push(`Telefone: ${labels[telefone]}`);
+  }
+
+  // CBO
+  const cbo = document.getElementById('input-cbos').value.trim();
+  const categoriaCbo = document.querySelector('select[name="categoria_cbo"]').value;
+  if (cbo) ativos.push(`CBO: ${cbo.split(/[\n,;]+/).length} códigos`);
+  else if (categoriaCbo) ativos.push(`Categoria: ${categoriaCbo}`);
+
+  // Quantidade
+  const quantidade = document.getElementById('input-quantidade').value;
+  if (quantidade) ativos.push(`Quantidade: ${quantidade}`);
+
+  // Atualiza interface
+  const container = document.getElementById('filtros-ativos');
+  if (ativos.length === 0) {
+    container.innerHTML = '<div class="text-muted">Nenhum filtro aplicado</div>';
+  } else {
+    container.innerHTML = ativos.map(f => `<span class="badge bg-primary me-1 mb-1">${f}</span>`).join('');
+  }
+}
+
+// ============================================================
+// PLACEHOLDER FUNCTIONS (IMPLEMENTAR NO BACKEND)
+// ============================================================
+
+function carregarCBOsPorCategoria() {
+  // TODO: Implementar carregamento dinâmico de CBOs por categoria
+  const categoria = document.querySelector('select[name="categoria_cbo"]').value;
+  if (categoria) {
+    mostrarNotificacao(`Categoria "${categoria}" selecionada. Implementar carregamento de CBOs.`, 'info');
+  }
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  atualizarEstimativas();
+  atualizarFiltrosAtivos();
+
+  // Observa mudanças em todos os campos de filtro
+  const camposObservados = [
+    'select-uf', 'input-cidades', 'bairros-hidden', 'input-quantidade',
+    'input-cbos'
+  ];
+
+  camposObservados.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => {
+        atualizarEstimativas();
+        atualizarFiltrosAtivos();
+      });
+      el.addEventListener('change', () => {
+        atualizarEstimativas();
+        atualizarFiltrosAtivos();
+      });
+    }
+  });
+
+  // Observa mudanças em radio buttons
+  document.querySelectorAll('input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      atualizarEstimativas();
+      atualizarFiltrosAtivos();
+    });
+  });
+});
 </script>
 </body>
 </html>
